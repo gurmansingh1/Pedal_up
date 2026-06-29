@@ -1,0 +1,10 @@
+{
+  "/onboarding/page": "app/onboarding/page.js",
+  "/page": "app/page.js",
+  "/login/page": "app/login/page.js",
+  "/dashboard/page": "app/dashboard/page.js",
+  "/post/page": "app/post/page.js",
+  "/api/auth/send-otp/route": "app/api/auth/send-otp/route.js",
+  "/api/auth/verify-otp/route": "app/api/auth/verify-otp/route.js",
+  "/rent/page": "app/rent/page.js"
+}

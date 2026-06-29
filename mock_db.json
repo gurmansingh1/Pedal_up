@@ -1,0 +1,118 @@
+{
+  "profiles": [
+    {
+      "id": "seller-uuid-1",
+      "college_email": "aman@thapar.edu",
+      "full_name": "Aman Verma",
+      "hostel": "JGB",
+      "year": "3rd",
+      "branch": "Computer Science",
+      "is_verified": true,
+      "created_at": "2026-06-23T10:00:00.000Z"
+    },
+    {
+      "id": "seller-uuid-2",
+      "college_email": "simran@thapar.edu",
+      "full_name": "Simran Kaur",
+      "hostel": "MGG",
+      "year": "2nd",
+      "branch": "Electronics & Communication",
+      "is_verified": true,
+      "created_at": "2026-06-23T11:00:00.000Z"
+    },
+    {
+      "id": "mock-2bw3wd9u632dyhtapf7z",
+      "college_email": "test@thapar.edu",
+      "full_name": "Test Student",
+      "hostel": "JGB",
+      "year": "1st",
+      "branch": "Computer Science",
+      "is_verified": true,
+      "created_at": "2026-06-23T15:22:32.736Z",
+      "updated_at": "2026-06-23T15:32:05.602Z"
+    },
+    {
+      "id": "mock-bw7gjbccovuzn7gmlv9fdi",
+      "college_email": "newuser@thapar.edu",
+      "full_name": "",
+      "hostel": "",
+      "year": "",
+      "branch": "",
+      "is_verified": true,
+      "created_at": "2026-06-23T15:28:13.835Z"
+    }
+  ],
+  "listings": [
+    {
+      "id": "listing-uuid-1",
+      "seller_id": "seller-uuid-1",
+      "title": "Firefox Target 21-Speed Hybrid",
+      "description": "Perfect condition Firefox hybrid cycle. Bought 10 months ago, used mostly for commuting from JGB hostel to the mechanical block. Smooth gear shifts, dual disc brakes, recently serviced.",
+      "brand": "Firefox",
+      "cycle_type": "hybrid",
+      "condition": "like_new",
+      "price": 8500,
+      "age_months": 10,
+      "pickup_location": "JGB Hostel Parking",
+      "status": "active",
+      "listing_mode": "sale",
+      "created_at": "2026-06-23T12:00:00.000Z"
+    },
+    {
+      "id": "listing-uuid-2",
+      "seller_id": "seller-uuid-2",
+      "title": "Atlas Asteroid Mountain Bike",
+      "description": "Sturdy mountain bike, great suspension, wide tires with excellent grip. Ideal for TIET campus pathways. Giving away because I'm graduating.",
+      "brand": "Atlas",
+      "cycle_type": "mountain",
+      "condition": "good",
+      "price": 4200,
+      "age_months": 24,
+      "pickup_location": "MGG Hostel Gate",
+      "status": "active",
+      "listing_mode": "sale",
+      "created_at": "2026-06-23T13:00:00.000Z"
+    },
+    {
+      "id": "listing-uuid-3",
+      "seller_id": "seller-uuid-1",
+      "title": "Btwin Triban RC100 Road Bike",
+      "description": "High quality road bike from Decathlon. Lightweight alloy frame, Shimano shifter, very fast and light. Tires upgraded to puncture-resistant continental ones.",
+      "brand": "Decathlon",
+      "cycle_type": "road",
+      "condition": "good",
+      "price": 14000,
+      "age_months": 15,
+      "pickup_location": "JGB Block A",
+      "status": "active",
+      "listing_mode": "sale",
+      "created_at": "2026-06-23T14:00:00.000Z"
+    }
+  ],
+  "listing_images": [
+    {
+      "id": "image-uuid-1",
+      "listing_id": "listing-uuid-1",
+      "image_url": "https://images.unsplash.com/photo-1485965120184-e220f721d03e?auto=format&fit=crop&w=600&q=80",
+      "sort_order": 0,
+      "created_at": "2026-06-23T12:05:00.000Z"
+    },
+    {
+      "id": "image-uuid-2",
+      "listing_id": "listing-uuid-2",
+      "image_url": "https://images.unsplash.com/photo-1532298229144-0ec0c57515c7?auto=format&fit=crop&w=600&q=80",
+      "sort_order": 0,
+      "created_at": "2026-06-23T13:05:00.000Z"
+    },
+    {
+      "id": "image-uuid-3",
+      "listing_id": "listing-uuid-3",
+      "image_url": "https://images.unsplash.com/photo-1507035895480-2b3156c31fc8?auto=format&fit=crop&w=600&q=80",
+      "sort_order": 0,
+      "created_at": "2026-06-23T14:05:00.000Z"
+    }
+  ],
+  "favorites": [],
+  "messages": [],
+  "reports": []
+}
