@@ -185,18 +185,18 @@ export default function LoginPage() {
   return (
     <div style={{
       minHeight: '100vh',
-      background: 'var(--bg-primary)',
+      background: '#E7E5E4',
       display: 'flex',
       position: 'relative',
       overflow: 'hidden',
     }}>
-      {/* Background */}
+      {/* Background radial blobs */}
       <div style={{
         position: 'fixed', inset: 0, zIndex: 0,
-        background: 'radial-gradient(ellipse at 30% 50%, rgba(34,197,94,0.07) 0%, transparent 60%), radial-gradient(ellipse at 70% 20%, rgba(132,204,22,0.04) 0%, transparent 50%)',
+        background: 'radial-gradient(ellipse at 20% 60%, rgba(47,133,90,0.05) 0%, transparent 50%), radial-gradient(ellipse at 80% 20%, rgba(217,119,6,0.03) 0%, transparent 50%)',
         pointerEvents: 'none',
       }} />
-      <div className="grid-overlay" style={{ position: 'fixed', inset: 0, zIndex: 0, opacity: 0.4 }} />
+      <div style={{ position: 'fixed', inset: 0, zIndex: 0, backgroundImage: 'radial-gradient(#D6D3D1 1px, transparent 1px)', backgroundSize: '24px 24px', opacity: 0.5, pointerEvents: 'none' }} />
 
       {/* ── Left branding panel ─────────────────────────────────────────────── */}
       <div
@@ -211,54 +211,48 @@ export default function LoginPage() {
         }}
         className="login-left"
       >
-        <Link href="/" style={{ display: 'flex', alignItems: 'center', gap: '10px', textDecoration: 'none', marginBottom: '60px' }}>
-          <div style={{
-            width: 42, height: 42,
-            background: 'linear-gradient(135deg, #22C55E, #16A34A)',
-            borderRadius: '13px',
-            display: 'flex', alignItems: 'center', justifyContent: 'center',
-            boxShadow: '0 8px 24px rgba(34,197,94,0.3)',
-          }}>
-            <Bike size={22} color="#fff" strokeWidth={2.5} />
-          </div>
-          <span style={{ fontSize: '20px', fontWeight: 800, color: '#fff', letterSpacing: '-0.5px' }}>
-            Pedal<span style={{ color: 'var(--primary)' }}>Up</span>
+        <Link href="/" style={{ display: 'flex', alignItems: 'center', gap: '4px', textDecoration: 'none', marginBottom: '60px' }}>
+          <span style={{ fontSize: '18px', fontWeight: 800, color: '#1F2937', letterSpacing: '1.5px', textTransform: 'uppercase', fontFamily: 'Inter, sans-serif' }}>
+            Pedal
+          </span>
+          <span style={{ fontSize: '18px', fontWeight: 800, color: '#2F855A', letterSpacing: '1.5px', textTransform: 'uppercase', fontFamily: 'Inter, sans-serif' }}>
+            Up
           </span>
         </Link>
 
-        <h1 style={{ fontSize: 'clamp(2rem, 3.5vw, 3.2rem)', fontWeight: 900, lineHeight: 1.1, letterSpacing: '-2px', marginBottom: '20px' }}>
+        <h1 style={{ fontSize: 'clamp(2rem, 3.5vw, 3.2rem)', fontWeight: 900, lineHeight: 1.1, letterSpacing: '-2px', marginBottom: '20px', color: '#1F2937', fontFamily: 'Inter, sans-serif' }}>
           Your campus.<br />
-          <span className="gradient-text">Your cycles.</span>
+          <span style={{ color: '#2F855A' }}>Your cycles.</span>
         </h1>
-        <p style={{ color: 'var(--text-secondary)', fontSize: '16px', lineHeight: 1.75, maxWidth: '380px', marginBottom: '48px' }}>
+        <p style={{ color: '#6B7280', fontSize: '16px', lineHeight: 1.75, maxWidth: '380px', marginBottom: '48px', fontFamily: 'Inter, sans-serif' }}>
           Join Thapar Institute students in the safest, most convenient campus cycle marketplace.
         </p>
 
         {features.map((feat, i) => (
-          <div key={i} style={{ display: 'flex', alignItems: 'center', gap: '12px', marginBottom: '16px' }}>
+          <div key={i} style={{ display: 'flex', alignItems: 'center', gap: '12px', marginBottom: '14px' }}>
             <div style={{
               width: 36, height: 36,
-              background: 'rgba(34,197,94,0.1)',
-              border: '1px solid rgba(34,197,94,0.2)',
-              borderRadius: '10px',
+              background: 'rgba(47, 133, 90, 0.08)',
+              border: '1px solid rgba(47, 133, 90, 0.18)',
+              borderRadius: '9px',
               display: 'flex', alignItems: 'center', justifyContent: 'center',
               flexShrink: 0,
             }}>
-              <feat.icon size={16} color="var(--primary)" />
+              <feat.icon size={16} color="#2F855A" />
             </div>
-            <span style={{ color: 'var(--text-secondary)', fontSize: '14px' }}>{feat.text}</span>
+            <span style={{ color: '#6B7280', fontSize: '14px', fontFamily: 'Inter, sans-serif' }}>{feat.text}</span>
           </div>
         ))}
 
-        <div style={{ marginTop: '64px' }}>
+        <div style={{ marginTop: '56px' }}>
           <div style={{
-            width: 180, height: 180,
-            background: 'radial-gradient(circle, rgba(34,197,94,0.1) 0%, transparent 70%)',
+            width: 160, height: 160,
+            background: 'radial-gradient(circle, rgba(47,133,90,0.08) 0%, transparent 70%)',
             borderRadius: '50%',
             display: 'flex', alignItems: 'center', justifyContent: 'center',
             animation: 'float 5s ease-in-out infinite',
           }}>
-            <Bike size={72} color="rgba(34,197,94,0.2)" strokeWidth={1} />
+            <Bike size={64} color="rgba(47,133,90,0.18)" strokeWidth={1.5} />
           </div>
         </div>
       </div>
@@ -273,9 +267,10 @@ export default function LoginPage() {
           padding: '40px 48px',
           position: 'relative',
           zIndex: 1,
-          borderLeft: '1px solid var(--border-light)',
-          background: 'rgba(15,23,42,0.75)',
-          backdropFilter: 'blur(24px)',
+          borderLeft: '1px solid #E5E2DF',
+          background: 'rgba(250, 250, 249, 0.96)',
+          backdropFilter: 'blur(20px)',
+          boxShadow: '-4px 0 24px rgba(0,0,0,0.05)',
         }}
         className="login-right"
       >
@@ -285,16 +280,16 @@ export default function LoginPage() {
           {step === 'email' && (
             <div className="animate-fade-in-up">
               <div style={{ marginBottom: '32px' }}>
-                <h2 style={{ fontSize: '26px', fontWeight: 800, letterSpacing: '-0.8px', marginBottom: '8px' }}>
+                <h2 style={{ fontSize: '26px', fontWeight: 800, letterSpacing: '-0.8px', marginBottom: '8px', color: '#1F2937', fontFamily: 'Inter, sans-serif' }}>
                   Sign in
                 </h2>
-                <p style={{ color: 'var(--text-secondary)', fontSize: '14px', lineHeight: 1.6 }}>
+                <p style={{ color: '#6B7280', fontSize: '14px', lineHeight: 1.6, fontFamily: 'Inter, sans-serif' }}>
                   Enter your Thapar Institute email. A one-time verification code will be sent to it.
                 </p>
               </div>
 
               <div style={{ marginBottom: '16px' }}>
-                <label style={{ display: 'block', fontSize: '13px', fontWeight: 600, color: 'var(--text-secondary)', marginBottom: '8px' }}>
+                <label style={{ display: 'block', fontSize: '13px', fontWeight: 600, color: '#6B7280', marginBottom: '8px', fontFamily: 'Inter, sans-serif' }}>
                   College Email
                 </label>
                 <div style={{ position: 'relative' }}>
@@ -335,15 +330,15 @@ export default function LoginPage() {
 
               <div style={{
                 marginTop: '20px', padding: '14px 16px',
-                background: 'rgba(34,197,94,0.05)',
-                border: '1px solid rgba(34,197,94,0.15)',
-                borderRadius: '12px',
+                background: 'rgba(47, 133, 90, 0.05)',
+                border: '1px solid rgba(47, 133, 90, 0.15)',
+                borderRadius: '10px',
               }}>
                 <div style={{ display: 'flex', alignItems: 'flex-start', gap: '8px' }}>
-                  <Lock size={13} color="var(--primary)" style={{ flexShrink: 0, marginTop: '2px' }} />
-                  <p style={{ fontSize: '12px', color: 'var(--text-secondary)', lineHeight: 1.6 }}>
+                  <Lock size={13} color="#2F855A" style={{ flexShrink: 0, marginTop: '2px' }} />
+                  <p style={{ fontSize: '12px', color: '#6B7280', lineHeight: 1.6, fontFamily: 'Inter, sans-serif' }}>
                     Access restricted to{' '}
-                    <strong style={{ color: 'var(--primary)' }}>@{COLLEGE_DOMAIN}</strong>{' '}
+                    <strong style={{ color: '#2F855A' }}>@{COLLEGE_DOMAIN}</strong>{' '}
                     addresses only. Gmail, Yahoo, or other domains are not accepted.
                   </p>
                 </div>
@@ -368,22 +363,22 @@ export default function LoginPage() {
 
               <div style={{ marginBottom: '24px' }}>
                 <div style={{
-                  width: 56, height: 56,
-                  background: 'rgba(34,197,94,0.1)',
-                  border: '1px solid rgba(34,197,94,0.2)',
-                  borderRadius: '16px',
+                  width: 52, height: 52,
+                  background: 'rgba(47, 133, 90, 0.08)',
+                  border: '1px solid rgba(47, 133, 90, 0.18)',
+                  borderRadius: '13px',
                   display: 'flex', alignItems: 'center', justifyContent: 'center',
                   marginBottom: '20px',
                 }}>
-                  <Mail size={26} color="var(--primary)" />
+                  <Mail size={24} color="#2F855A" />
                 </div>
-                <h2 style={{ fontSize: '24px', fontWeight: 800, letterSpacing: '-0.5px', marginBottom: '8px' }}>
+                <h2 style={{ fontSize: '24px', fontWeight: 800, letterSpacing: '-0.5px', marginBottom: '8px', color: '#1F2937', fontFamily: 'Inter, sans-serif' }}>
                   Check your inbox
                 </h2>
-                <p style={{ color: 'var(--text-secondary)', fontSize: '14px', lineHeight: 1.6 }}>
+                <p style={{ color: '#6B7280', fontSize: '14px', lineHeight: 1.6, fontFamily: 'Inter, sans-serif' }}>
                   {devOtp
                     ? 'Running in dev mode — SMTP not configured.'
-                    : <>We sent a 6-digit code to <strong style={{ color: 'var(--text-primary)' }}>{email}</strong></>
+                    : <>We sent a 6-digit code to <strong style={{ color: '#1F2937' }}>{email}</strong></>
                   }
                 </p>
               </div>
@@ -392,22 +387,22 @@ export default function LoginPage() {
               {devOtp && (
                 <div style={{
                   marginBottom: '20px', padding: '14px 18px',
-                  background: 'rgba(234,179,8,0.08)',
-                  border: '1px solid rgba(234,179,8,0.3)',
-                  borderRadius: '12px',
+                  background: 'rgba(180, 130, 30, 0.06)',
+                  border: '1px solid rgba(180, 130, 30, 0.2)',
+                  borderRadius: '10px',
                 }}>
                   <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '8px' }}>
-                    <Terminal size={14} color="#eab308" />
-                    <span style={{ fontSize: '12px', fontWeight: 700, color: '#eab308', textTransform: 'uppercase', letterSpacing: '0.5px' }}>
+                    <Terminal size={14} color="#92580A" />
+                    <span style={{ fontSize: '11px', fontWeight: 700, color: '#92580A', textTransform: 'uppercase', letterSpacing: '0.6px', fontFamily: 'Inter, sans-serif' }}>
                       Development Mode
                     </span>
                   </div>
-                  <p style={{ fontSize: '12px', color: '#94A3B8', marginBottom: '10px', lineHeight: 1.5 }}>
-                    SMTP not configured. Add <code style={{ color: '#e2e8f0', background: 'rgba(0,0,0,0.3)', padding: '1px 5px', borderRadius: '4px' }}>SMTP_*</code> vars to <code style={{ color: '#e2e8f0', background: 'rgba(0,0,0,0.3)', padding: '1px 5px', borderRadius: '4px' }}>.env.local</code> for real emails.
+                  <p style={{ fontSize: '12px', color: '#6B7280', marginBottom: '10px', lineHeight: 1.5, fontFamily: 'Inter, sans-serif' }}>
+                    SMTP not configured. Add <code style={{ color: '#374151', background: '#F0EFED', padding: '1px 5px', borderRadius: '4px' }}>SMTP_*</code> vars to <code style={{ color: '#374151', background: '#F0EFED', padding: '1px 5px', borderRadius: '4px' }}>.env.local</code> for real emails.
                   </p>
-                  <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', background: 'rgba(0,0,0,0.25)', borderRadius: '8px', padding: '10px 14px' }}>
-                    <span style={{ fontSize: '12px', color: '#94A3B8' }}>Your OTP:</span>
-                    <span style={{ fontSize: '22px', fontWeight: 900, letterSpacing: '6px', color: '#eab308', fontFamily: 'monospace' }}>
+                  <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', background: '#F8F7F4', borderRadius: '8px', padding: '10px 14px', border: '1px solid #E5E2DF' }}>
+                    <span style={{ fontSize: '12px', color: '#9CA3AF', fontFamily: 'Inter, sans-serif' }}>Your OTP:</span>
+                    <span style={{ fontSize: '22px', fontWeight: 900, letterSpacing: '6px', color: '#92580A', fontFamily: 'monospace' }}>
                       {devOtp}
                     </span>
                   </div>
@@ -455,7 +450,7 @@ export default function LoginPage() {
                 }
               </button>
 
-              <p style={{ textAlign: 'center', marginTop: '20px', fontSize: '13px', color: 'var(--text-secondary)' }}>
+              <p style={{ textAlign: 'center', marginTop: '20px', fontSize: '13px', color: '#9CA3AF', fontFamily: 'Inter, sans-serif' }}>
                 Didn&apos;t receive the code?{' '}
                 <button
                   onClick={handleResend}
@@ -463,7 +458,7 @@ export default function LoginPage() {
                   style={{
                     background: 'none', border: 'none', fontFamily: 'Inter, sans-serif',
                     cursor: resendTimer > 0 ? 'default' : 'pointer',
-                    color: resendTimer > 0 ? 'var(--text-tertiary)' : 'var(--primary)',
+                    color: resendTimer > 0 ? '#9CA3AF' : '#2F855A',
                     fontWeight: 600, fontSize: '13px', padding: 0,
                   }}
                 >
@@ -477,24 +472,23 @@ export default function LoginPage() {
           {step === 'success' && (
             <div className="animate-scale-in" style={{ textAlign: 'center' }}>
               <div style={{
-                width: 80, height: 80,
-                background: 'rgba(34,197,94,0.12)',
-                border: '1px solid rgba(34,197,94,0.3)',
-                borderRadius: '24px',
+                width: 72, height: 72,
+                background: 'rgba(47, 133, 90, 0.10)',
+                border: '1px solid rgba(47, 133, 90, 0.25)',
+                borderRadius: '20px',
                 display: 'flex', alignItems: 'center', justifyContent: 'center',
                 margin: '0 auto 24px',
-                animation: 'glow-pulse 1.5s ease-in-out infinite',
               }}>
-                <CheckCircle size={40} color="var(--primary)" />
+                <CheckCircle size={36} color="#2F855A" />
               </div>
-              <h2 style={{ fontSize: '26px', fontWeight: 800, marginBottom: '12px', letterSpacing: '-0.5px' }}>
+              <h2 style={{ fontSize: '26px', fontWeight: 800, marginBottom: '12px', letterSpacing: '-0.5px', color: '#1F2937', fontFamily: 'Inter, sans-serif' }}>
                 Welcome to PedalUp!
               </h2>
-              <p style={{ color: 'var(--text-secondary)', fontSize: '14px', lineHeight: 1.6 }}>
+              <p style={{ color: '#6B7280', fontSize: '14px', lineHeight: 1.6, fontFamily: 'Inter, sans-serif' }}>
                 Identity verified. Setting up your profile...
               </p>
               <div style={{ marginTop: '24px', display: 'flex', justifyContent: 'center' }}>
-                <div className="spinner" style={{ width: 24, height: 24 }} />
+                <div className="spinner" style={{ width: 22, height: 22 }} />
               </div>
             </div>
           )}
@@ -508,15 +502,12 @@ export default function LoginPage() {
             width: 100% !important;
             border-left: none !important;
             padding: 40px 24px !important;
+            box-shadow: none !important;
           }
         }
         @keyframes float {
           0%, 100% { transform: translateY(0px); }
           50%       { transform: translateY(-12px); }
-        }
-        @keyframes glow-pulse {
-          0%, 100% { box-shadow: 0 0 20px rgba(34,197,94,0.2); }
-          50%       { box-shadow: 0 0 40px rgba(34,197,94,0.5), 0 0 80px rgba(34,197,94,0.15); }
         }
       `}</style>
     </div>

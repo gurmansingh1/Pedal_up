@@ -113,17 +113,17 @@ export default function DashboardPage() {
   const totalRevenue = listings.filter(l => l.status === 'sold').reduce((s, l) => s + l.price, 0)
 
   return (
-    <div style={{ minHeight: '100vh', background: 'var(--bg-primary)', padding: '40px 20px 80px' }}>
+    <div style={{ minHeight: '100vh', background: '#E7E5E4', padding: '40px 24px 80px' }}>
       <div style={{ maxWidth: '900px', margin: '0 auto' }}>
         {/* Header */}
         <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '40px', flexWrap: 'wrap', gap: '16px' }}>
           <div>
             <div style={{ display: 'flex', alignItems: 'center', gap: '10px', marginBottom: '6px' }}>
               <LayoutDashboard size={22} color="var(--accent)" />
-              <h1 style={{ fontSize: '28px', fontWeight: 800, letterSpacing: '-1px' }}>My Bazaar</h1>
+            <h1 style={{ fontSize: '28px', fontWeight: 800, letterSpacing: '-1px', color: '#1F2937', fontFamily: 'Inter, sans-serif' }}>My Listings</h1>
             </div>
-            <p style={{ color: 'var(--text-secondary)', fontSize: '14px' }}>
-              Welcome back, <strong style={{ color: 'var(--text-primary)' }}>{user.name}</strong> · {user.hostel}
+            <p style={{ color: '#6B7280', fontSize: '14px', fontFamily: 'Inter, sans-serif' }}>
+              Welcome back, <strong style={{ color: '#1F2937' }}>{user.name}</strong> · {user.hostel}
             </p>
           </div>
           <Link href="/post">
@@ -136,10 +136,10 @@ export default function DashboardPage() {
         {/* Stats row */}
         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(180px, 1fr))', gap: '16px', marginBottom: '40px' }}>
           {[
-            { label: 'Active Listings', value: activeListings, icon: Package,    color: '#22c55e' },
-            { label: 'Cycles Sold',     value: soldListings,   icon: CheckCircle, color: '#84cc16' },
-            { label: 'Total Earned',    value: `₹${totalRevenue.toLocaleString('en-IN')}`, icon: TrendingUp, color: '#60a5fa' },
-            { label: 'Saved Listings',  value: MOCK_SAVED.length, icon: Heart,   color: '#f472b6' },
+            { label: 'Active Listings', value: activeListings, icon: Package,    color: '#2F855A' },
+            { label: 'Cycles Sold',     value: soldListings,   icon: CheckCircle, color: '#276749' },
+            { label: 'Total Earned',    value: `₹${totalRevenue.toLocaleString('en-IN')}`, icon: TrendingUp, color: '#1F2937' },
+            { label: 'Saved Listings',  value: MOCK_SAVED.length, icon: Heart,   color: '#6B7280' },
           ].map(stat => (
             <div key={stat.label} className="card" style={{ padding: '20px' }}>
               <div style={{
@@ -150,8 +150,8 @@ export default function DashboardPage() {
               }}>
                 <stat.icon size={18} color={stat.color} />
               </div>
-              <div style={{ fontSize: '24px', fontWeight: 800, letterSpacing: '-1px' }}>{stat.value}</div>
-              <div style={{ fontSize: '13px', color: 'var(--text-secondary)', marginTop: '2px' }}>{stat.label}</div>
+              <div style={{ fontSize: '24px', fontWeight: 800, letterSpacing: '-1px', color: '#1F2937', fontFamily: 'Inter, sans-serif' }}>{stat.value}</div>
+              <div style={{ fontSize: '13px', color: '#9CA3AF', marginTop: '2px', fontFamily: 'Inter, sans-serif' }}>{stat.label}</div>
             </div>
           ))}
         </div>
@@ -159,7 +159,8 @@ export default function DashboardPage() {
         {/* Tabs */}
         <div style={{
           display: 'flex', gap: '4px', padding: '4px',
-          background: 'var(--bg-subtle)', borderRadius: '12px',
+          background: '#F8F7F4', borderRadius: '10px',
+          border: '1px solid #E5E2DF',
           width: 'fit-content', marginBottom: '28px',
         }}>
           {(['listings', 'saved'] as const).map(tab => (
@@ -190,7 +191,7 @@ export default function DashboardPage() {
                 />
                 <div style={{ flex: 1, minWidth: 0 }}>
                   <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '4px', flexWrap: 'wrap' }}>
-                    <h3 style={{ fontSize: '15px', fontWeight: 700, color: '#fff', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
+                    <h3 style={{ fontSize: '15px', fontWeight: 700, color: '#1F2937', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis', fontFamily: 'Inter, sans-serif' }}>
                       {listing.title}
                     </h3>
                     {/* Listing mode badge */}
@@ -198,8 +199,8 @@ export default function DashboardPage() {
                       display: 'inline-flex', alignItems: 'center', gap: '3px',
                       fontSize: '10px', fontWeight: 700, padding: '2px 7px', borderRadius: '5px',
                       ...(listing.listing_mode === 'rent'
-                        ? { background: 'rgba(132,204,22,0.1)', color: '#84cc16', border: '1px solid rgba(132,204,22,0.25)' }
-                        : { background: 'rgba(34,197,94,0.1)', color: '#22c55e', border: '1px solid rgba(34,197,94,0.25)' }),
+                        ? { background: 'rgba(47,133,90,0.08)', color: '#2F855A', border: '1px solid rgba(47,133,90,0.2)' }
+                        : { background: 'rgba(31,41,55,0.08)', color: '#1F2937', border: '1px solid rgba(31,41,55,0.15)' }),
                     }}>
                       {listing.listing_mode === 'rent' ? <Calendar size={9} /> : <ShoppingCart size={9} />}
                       {listing.listing_mode === 'rent' ? 'RENT' : 'SALE'}
@@ -213,13 +214,13 @@ export default function DashboardPage() {
                     </span>
                   </div>
                   <div style={{ display: 'flex', gap: '16px', alignItems: 'center', flexWrap: 'wrap' }}>
-                    <span style={{ fontSize: '17px', fontWeight: 800, color: listing.listing_mode === 'rent' ? 'var(--accent)' : 'var(--primary)' }}>
+                    <span style={{ fontSize: '17px', fontWeight: 800, color: '#1F2937', fontFamily: 'Inter, sans-serif' }}>
                       {listing.listing_mode === 'rent'
                         ? `₹${(listing as any).rent_per_day}/day`
                         : `₹${listing.price.toLocaleString('en-IN')}`
                       }
                     </span>
-                    <span style={{ display: 'flex', alignItems: 'center', gap: '4px', color: 'var(--text-tertiary)', fontSize: '12px' }}>
+                    <span style={{ display: 'flex', alignItems: 'center', gap: '4px', color: '#9CA3AF', fontSize: '12px', fontFamily: 'Inter, sans-serif' }}>
                       <Eye size={12} /> {listing.views} views
                     </span>
                     <span style={{ fontSize: '12px', color: CONDITION_COLORS[listing.condition], fontWeight: 600 }}>
@@ -262,9 +263,9 @@ export default function DashboardPage() {
                   <button
                     onClick={() => deleteListing(listing.id)}
                     style={{
-                      padding: '7px 10px', background: 'rgba(239,68,68,0.1)',
-                      border: '1px solid rgba(239,68,68,0.2)', borderRadius: '8px',
-                      cursor: 'pointer', color: '#ef4444',
+                      padding: '7px 10px', background: 'rgba(185,60,60,0.08)',
+                      border: '1px solid rgba(185,60,60,0.15)', borderRadius: '8px',
+                      cursor: 'pointer', color: '#9B2626',
                     }}
                   >
                     <Trash2 size={13} />
@@ -285,9 +286,9 @@ export default function DashboardPage() {
                     <img src={item.image_url} alt={item.title} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
                   </div>
                   <div style={{ padding: '14px 16px' }}>
-                    <h3 style={{ fontSize: '14px', fontWeight: 700, color: '#fff', marginBottom: '6px' }}>{item.title}</h3>
+                    <h3 style={{ fontSize: '14px', fontWeight: 700, color: '#1F2937', marginBottom: '6px', fontFamily: 'Inter, sans-serif' }}>{item.title}</h3>
                     <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                      <span style={{ fontSize: '18px', fontWeight: 800, color: 'var(--accent)' }}>₹{item.price.toLocaleString('en-IN')}</span>
+                      <span style={{ fontSize: '18px', fontWeight: 800, color: '#1F2937', fontFamily: 'Inter, sans-serif' }}>₹{item.price.toLocaleString('en-IN')}</span>
                       <span className="badge badge-accent">{item.cycle_type}</span>
                     </div>
                   </div>

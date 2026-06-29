@@ -1,10 +1,14 @@
 'use client'
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useRef } from 'react'
 import Link from 'next/link'
+import dynamic from 'next/dynamic'
 import {
-  Search, ChevronDown, MapPin, Clock, Star, Shield, Users,
+  Search, ChevronDown, MapPin, Clock, Shield, Users,
   ArrowRight, Bike, Package, Zap, TrendingUp, CheckCircle,
 } from 'lucide-react'
+
+// Dynamically import 3D component (no SSR)
+const Cycle3D = dynamic(() => import('@/components/Cycle3D'), { ssr: false })
 
 /* ─── Mock listings (used while Supabase not configured) ──────────────────────── */
 const MOCK_LISTINGS = [
@@ -115,18 +119,18 @@ const CONDITION_LABELS: Record<string, string> = {
 
 const CONDITION_COLORS: Record<string, string> = {
   like_new: 'badge-primary',
-  good: 'badge-accent',
-  fair: 'badge-yellow',
-  poor: 'badge-red',
+  good:     'badge-accent',
+  fair:     'badge-yellow',
+  poor:     'badge-red',
 }
 
 const TYPE_FILTERS = ['All', 'Hybrid', 'Mountain', 'Road', 'City', 'Folding']
 
 const STATS = [
-  { icon: Bike,       label: 'Cycles Listed',    value: '120+' },
-  { icon: Users,      label: 'TIET Students',     value: '2,400+' },
-  { icon: Shield,     label: 'Domain-Verified',   value: '100%' },
-  { icon: TrendingUp, label: 'Avg. Savings',      value: '60%' },
+  { icon: Bike,       label: 'Cycles Listed',   value: '120+' },
+  { icon: Users,      label: 'TIET Students',    value: '2,400+' },
+  { icon: Shield,     label: 'Domain-Verified',  value: '100%' },
+  { icon: TrendingUp, label: 'Avg. Savings',     value: '60%' },
 ]
 
 const HOW_IT_WORKS = [
@@ -155,15 +159,33 @@ export default function HomePage() {
   const [typeFilter, setTypeFilter] = useState('All')
   const [sortBy, setSortBy] = useState('newest')
   const [maxPrice, setMaxPrice] = useState(30000)
+  const heroRef = useRef<HTMLElement>(null)
+  const marketplaceRef = useRef<HTMLElement>(null)
 
   useEffect(() => {
     // Scroll reveal observer
     const observer = new IntersectionObserver(
       (entries) => { entries.forEach(e => e.target.classList.toggle('visible', e.isIntersecting)) },
-      { threshold: 0.12 }
+      { threshold: 0.1 }
     )
     document.querySelectorAll('.reveal').forEach(el => observer.observe(el))
     return () => observer.disconnect()
+  }, [])
+
+  // Scroll-driven hero parallax (pure CSS + JS, no framer-motion needed)
+  useEffect(() => {
+    const hero = heroRef.current
+    if (!hero) return
+    const handleScroll = () => {
+      const scrollY = window.scrollY
+      const heroHeight = hero.offsetHeight
+      const progress = Math.min(scrollY / heroHeight, 1)
+      // Hero slides up and fades
+      hero.style.transform = `translateY(${scrollY * 0.45}px)`
+      hero.style.opacity = `${1 - progress * 1.6}`
+    }
+    window.addEventListener('scroll', handleScroll, { passive: true })
+    return () => window.removeEventListener('scroll', handleScroll)
   }, [])
 
   // Only show sale listings on the home page
@@ -174,7 +196,7 @@ export default function HomePage() {
       l.pickup_location.toLowerCase().includes(search.toLowerCase())
     const matchesType = typeFilter === 'All' || l.cycle_type === typeFilter.toLowerCase()
     const matchesPrice = l.price <= maxPrice
-    return matchesSearch && matchesType && matchesPrice && l.listing_mode === 'sale'
+    return matchesSearch && matchesType && matchesPrice && (l as any).listing_mode === 'sale'
   }).sort((a, b) => {
     if (sortBy === 'price_asc') return a.price - b.price
     if (sortBy === 'price_desc') return b.price - a.price
@@ -188,256 +210,248 @@ export default function HomePage() {
   }
 
   return (
-    <div style={{ minHeight: '100vh', background: 'var(--bg-primary)' }}>
+    <div style={{ minHeight: '100vh', background: '#E7E5E4' }}>
 
       {/* ══════════════════════ HERO SECTION ══════════════════════ */}
-      <section style={{
-        position: 'relative',
-        minHeight: '100vh',
-        display: 'flex',
-        flexDirection: 'column',
-        alignItems: 'center',
-        justifyContent: 'center',
-        overflow: 'hidden',
-        background: 'linear-gradient(160deg, #0F172A 0%, #0d1a12 50%, #0F172A 100%)',
-      }}>
-        {/* Grid overlay */}
-        <div className="grid-overlay" style={{ position: 'absolute', inset: 0, opacity: 0.5 }} />
+      <section
+        ref={heroRef}
+        style={{
+          position: 'relative',
+          minHeight: '100vh',
+          background: '#FAFAF9',
+          display: 'flex',
+          alignItems: 'center',
+          overflow: 'hidden',
+          willChange: 'transform, opacity',
+        }}
+      >
+        {/* Subtle warm texture dots */}
+        <div style={{
+          position: 'absolute', inset: 0, pointerEvents: 'none',
+          backgroundImage: 'radial-gradient(#D6D3D1 1px, transparent 1px)',
+          backgroundSize: '28px 28px',
+          opacity: 0.5,
+        }} />
 
-        {/* Glowing orbs */}
+        {/* Soft green ambient blob — bottom right */}
         <div style={{
           position: 'absolute',
-          width: 600, height: 600,
-          background: 'radial-gradient(circle, rgba(34,197,94,0.08) 0%, transparent 70%)',
+          width: 520, height: 520,
+          background: 'radial-gradient(circle, rgba(47, 133, 90, 0.07) 0%, transparent 70%)',
           borderRadius: '50%',
-          top: '-10%', left: '-15%',
-          animation: 'breathe 8s ease-in-out infinite',
+          bottom: '-80px', right: '-60px',
           pointerEvents: 'none',
         }} />
+        {/* Warm amber blob — top left */}
         <div style={{
           position: 'absolute',
-          width: 500, height: 500,
-          background: 'radial-gradient(circle, rgba(132,204,22,0.06) 0%, transparent 70%)',
+          width: 380, height: 380,
+          background: 'radial-gradient(circle, rgba(217, 119, 6, 0.04) 0%, transparent 70%)',
           borderRadius: '50%',
-          bottom: '-5%', right: '-10%',
-          animation: 'breathe 10s ease-in-out infinite reverse',
-          pointerEvents: 'none',
-        }} />
-        <div style={{
-          position: 'absolute',
-          width: 300, height: 300,
-          background: 'radial-gradient(circle, rgba(34,197,94,0.05) 0%, transparent 70%)',
-          borderRadius: '50%',
-          top: '40%', right: '20%',
-          animation: 'breathe 7s ease-in-out infinite 2s',
+          top: '-40px', left: '-60px',
           pointerEvents: 'none',
         }} />
 
-        {/* Content */}
+        {/* ── Hero inner layout ────────────────────────────────────── */}
         <div style={{
           position: 'relative',
-          zIndex: 10,
-          display: 'flex',
-          flexDirection: 'column',
-          alignItems: 'center',
-          padding: '80px 20px 60px',
-          textAlign: 'center',
-          maxWidth: '860px',
+          zIndex: 5,
+          maxWidth: '1200px',
+          margin: '0 auto',
+          padding: '60px 40px',
           width: '100%',
+          display: 'grid',
+          gridTemplateColumns: '1fr 1fr',
+          gap: '40px',
+          alignItems: 'center',
         }}>
-          {/* Badge */}
-          <div
-            className="feature-pill animate-fade-in"
-            style={{ marginBottom: '32px' }}
-          >
-            <div className="status-dot" style={{ width: 6, height: 6 }} />
-            Exclusively for Thapar Institute Students
-          </div>
 
-          {/* Headline */}
-          <h1
-            className="animate-fade-in-up delay-100"
-            style={{
-              opacity: 0,
-              fontSize: 'clamp(3rem, 7.5vw, 5.5rem)',
-              fontWeight: 900,
-              lineHeight: 1.05,
-              letterSpacing: '-3px',
-              marginBottom: '12px',
-              color: 'var(--text-primary)',
-            }}
-          >
-            Campus Cycles,
-          </h1>
-          <h1
-            className="gradient-text animate-fade-in-up delay-200"
-            style={{
-              opacity: 0,
-              fontSize: 'clamp(3rem, 7.5vw, 5.5rem)',
-              fontWeight: 900,
-              lineHeight: 1.05,
-              letterSpacing: '-3px',
-              marginBottom: '28px',
-            }}
-          >
-            Reimagined.
-          </h1>
+          {/* ── Left: Text content ────────────────────────── */}
+          <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-start' }}>
 
-          <p
-            className="animate-fade-in-up delay-300"
-            style={{
-              opacity: 0,
-              fontSize: '18px',
-              color: 'var(--text-secondary)',
-              maxWidth: '540px',
-              lineHeight: 1.75,
-              marginBottom: '44px',
-            }}
-          >
-            Buy &amp; sell pre-loved bicycles within TIET campus.
-            Verified students only · Zero commission · Instant messaging.
-          </p>
-
-          {/* CTA Buttons */}
-          <div
-            className="animate-fade-in-up delay-400"
-            style={{
-              opacity: 0,
-              display: 'flex',
-              gap: '14px',
-              flexWrap: 'wrap',
-              justifyContent: 'center',
-              marginBottom: '72px',
-            }}
-          >
-            <Link href="#listings">
-              <button
-                className="btn-primary animate-glow-pulse"
-                style={{ padding: '15px 36px', fontSize: '16px', borderRadius: '14px' }}
-              >
-                Browse for Sale <ArrowRight size={16} style={{ display: 'inline', marginLeft: 6 }} />
-              </button>
-            </Link>
-            <Link href="/rent">
-              <button
-                className="btn-secondary"
-                style={{ padding: '14px 32px', fontSize: '16px', borderRadius: '14px' }}
-              >
-                Rent a Cycle
-              </button>
-            </Link>
-          </div>
-
-          {/* Premium Bicycle Illustration */}
-          <div
-            className="animate-fade-in-up delay-500 hero-bike-container"
-            style={{ opacity: 0, position: 'relative', width: '100%', maxWidth: 520 }}
-          >
-            <div className="hero-bike-glow" />
-            {/* SVG Bicycle */}
-            <svg
-              viewBox="0 0 520 280"
-              fill="none"
-              xmlns="http://www.w3.org/2000/svg"
-              style={{ width: '100%', height: 'auto', filter: 'drop-shadow(0 20px 60px rgba(34,197,94,0.15))' }}
+            {/* Label chip */}
+            <div
+              className="feature-pill animate-fade-in"
+              style={{ marginBottom: '28px' }}
             >
-              {/* Rear wheel */}
-              <circle cx="130" cy="185" r="80" stroke="rgba(34,197,94,0.25)" strokeWidth="3" fill="none"/>
-              <circle cx="130" cy="185" r="65" stroke="rgba(34,197,94,0.15)" strokeWidth="2" fill="none"/>
-              <circle cx="130" cy="185" r="10" fill="rgba(34,197,94,0.4)" stroke="rgba(34,197,94,0.7)" strokeWidth="2"/>
-              {/* Rear spokes */}
-              {[0,30,60,90,120,150,180,210,240,270,300,330].map(deg => {
-                const rad = (deg * Math.PI) / 180
-                return (
-                  <line key={deg}
-                    x1={130 + 10 * Math.cos(rad)} y1={185 + 10 * Math.sin(rad)}
-                    x2={130 + 65 * Math.cos(rad)} y2={185 + 65 * Math.sin(rad)}
-                    stroke="rgba(34,197,94,0.2)" strokeWidth="1.5"
-                  />
-                )
-              })}
-
-              {/* Front wheel */}
-              <circle cx="390" cy="185" r="80" stroke="rgba(34,197,94,0.25)" strokeWidth="3" fill="none"/>
-              <circle cx="390" cy="185" r="65" stroke="rgba(34,197,94,0.15)" strokeWidth="2" fill="none"/>
-              <circle cx="390" cy="185" r="10" fill="rgba(34,197,94,0.4)" stroke="rgba(34,197,94,0.7)" strokeWidth="2"/>
-              {/* Front spokes */}
-              {[0,30,60,90,120,150,180,210,240,270,300,330].map(deg => {
-                const rad = (deg * Math.PI) / 180
-                return (
-                  <line key={deg}
-                    x1={390 + 10 * Math.cos(rad)} y1={185 + 10 * Math.sin(rad)}
-                    x2={390 + 65 * Math.cos(rad)} y2={185 + 65 * Math.sin(rad)}
-                    stroke="rgba(34,197,94,0.2)" strokeWidth="1.5"
-                  />
-                )
-              })}
-
-              {/* Frame — top tube */}
-              <path d="M 195 120 L 320 120" stroke="rgba(34,197,94,0.6)" strokeWidth="6" strokeLinecap="round"/>
-              {/* Frame — down tube */}
-              <path d="M 195 120 L 130 185" stroke="rgba(34,197,94,0.5)" strokeWidth="6" strokeLinecap="round"/>
-              {/* Frame — seat tube */}
-              <path d="M 260 185 L 195 120" stroke="rgba(34,197,94,0.55)" strokeWidth="6" strokeLinecap="round"/>
-              {/* Frame — chain stay */}
-              <path d="M 130 185 L 260 185" stroke="rgba(34,197,94,0.45)" strokeWidth="5" strokeLinecap="round"/>
-              {/* Fork */}
-              <path d="M 320 120 L 390 185" stroke="rgba(34,197,94,0.5)" strokeWidth="5" strokeLinecap="round"/>
-              {/* Fork stay */}
-              <path d="M 300 140 L 390 185" stroke="rgba(34,197,94,0.4)" strokeWidth="4" strokeLinecap="round"/>
-
-              {/* Head tube */}
-              <rect x="312" y="108" width="16" height="32" rx="6" fill="rgba(34,197,94,0.5)" stroke="rgba(34,197,94,0.8)" strokeWidth="1.5"/>
-              {/* Seat tube top */}
-              <rect x="188" y="108" width="14" height="28" rx="5" fill="rgba(34,197,94,0.45)" stroke="rgba(34,197,94,0.7)" strokeWidth="1.5"/>
-
-              {/* Handlebar */}
-              <path d="M 320 105 Q 340 88 355 95" stroke="rgba(34,197,94,0.7)" strokeWidth="4" strokeLinecap="round" fill="none"/>
-              <circle cx="356" cy="94" r="6" fill="rgba(34,197,94,0.5)" stroke="rgba(34,197,94,0.9)" strokeWidth="2"/>
-
-              {/* Saddle */}
-              <path d="M 172 110 Q 195 102 218 110" stroke="rgba(34,197,94,0.8)" strokeWidth="6" strokeLinecap="round" fill="none"/>
-
-              {/* Pedal crank */}
-              <circle cx="260" cy="185" r="16" stroke="rgba(34,197,94,0.4)" strokeWidth="2" fill="rgba(34,197,94,0.06)"/>
-              <line x1="244" y1="185" x2="276" y2="185" stroke="rgba(34,197,94,0.5)" strokeWidth="3"/>
-              <circle cx="244" cy="185" r="5" fill="rgba(34,197,94,0.6)"/>
-              <circle cx="276" cy="185" r="5" fill="rgba(34,197,94,0.6)"/>
-
-              {/* Chain */}
-              <path d="M 130 185 Q 195 200 260 185" stroke="rgba(34,197,94,0.2)" strokeWidth="2" strokeDasharray="4,3" fill="none"/>
-
-              {/* Ground shadow */}
-              <ellipse cx="260" cy="270" rx="160" ry="8" fill="rgba(34,197,94,0.06)"/>
-            </svg>
-
-            {/* Floating info chips */}
-            <div style={{
-              position: 'absolute', top: -10, right: -20,
-              background: 'rgba(30,41,59,0.9)',
-              border: '1px solid rgba(34,197,94,0.25)',
-              borderRadius: '12px',
-              padding: '10px 16px',
-              backdropFilter: 'blur(16px)',
-              animation: 'float 4s ease-in-out infinite',
-            }}>
-              <div style={{ fontSize: '11px', color: 'var(--text-tertiary)', marginBottom: '2px' }}>Listed now</div>
-              <div style={{ fontSize: '15px', fontWeight: 800, color: 'var(--primary)' }}>₹8,500</div>
+              <div className="status-dot" style={{ width: 6, height: 6 }} />
+              Exclusively for @thapar.edu students
             </div>
-            <div style={{
-              position: 'absolute', bottom: 20, left: -20,
-              background: 'rgba(30,41,59,0.9)',
-              border: '1px solid rgba(34,197,94,0.25)',
-              borderRadius: '12px',
-              padding: '10px 16px',
-              backdropFilter: 'blur(16px)',
-              animation: 'float 5s ease-in-out infinite 1s',
-            }}>
-              <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
-                <CheckCircle size={14} color="var(--primary)" />
-                <span style={{ fontSize: '13px', fontWeight: 600, color: 'var(--text-primary)' }}>Verified Seller</span>
-              </div>
+
+            {/* Main title */}
+            <h1
+              className="animate-fade-in-up delay-100"
+              style={{
+                opacity: 0,
+                fontSize: 'clamp(3.2rem, 7vw, 5.8rem)',
+                fontWeight: 900,
+                lineHeight: 0.95,
+                letterSpacing: '-4px',
+                color: '#1F2937',
+                marginBottom: '24px',
+                fontFamily: 'Inter, sans-serif',
+              }}
+            >
+              PEDAL
+              <br />
+              <span style={{ color: '#2F855A' }}>UP</span>
+            </h1>
+
+            {/* Subtitle */}
+            <p
+              className="animate-fade-in-up delay-200"
+              style={{
+                opacity: 0,
+                fontSize: '18px',
+                color: '#6B7280',
+                maxWidth: '440px',
+                lineHeight: 1.7,
+                marginBottom: '40px',
+                fontFamily: 'Inter, sans-serif',
+              }}
+            >
+              Buy, Sell and Rent Cycles within
+              Thapar Campus — verified students only.
+            </p>
+
+            {/* CTA buttons */}
+            <div
+              className="animate-fade-in-up delay-300"
+              style={{
+                opacity: 0,
+                display: 'flex',
+                gap: '12px',
+                flexWrap: 'wrap',
+                marginBottom: '56px',
+              }}
+            >
+              <a href="#listings">
+                <button
+                  style={{
+                    background: '#1F2937',
+                    color: '#FFFFFF',
+                    fontSize: '15px',
+                    fontWeight: 600,
+                    padding: '14px 28px',
+                    borderRadius: '10px',
+                    border: 'none',
+                    cursor: 'pointer',
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: '8px',
+                    fontFamily: 'Inter, sans-serif',
+                    transition: 'all 0.2s ease',
+                    letterSpacing: '-0.1px',
+                  }}
+                  onMouseOver={e => {
+                    const el = e.currentTarget as HTMLElement
+                    el.style.background = '#374151'
+                    el.style.transform = 'translateY(-1px)'
+                    el.style.boxShadow = '0 4px 16px rgba(31,41,55,0.2)'
+                  }}
+                  onMouseOut={e => {
+                    const el = e.currentTarget as HTMLElement
+                    el.style.background = '#1F2937'
+                    el.style.transform = 'translateY(0)'
+                    el.style.boxShadow = 'none'
+                  }}
+                >
+                  Browse Cycles
+                  <ArrowRight size={15} />
+                </button>
+              </a>
+              <Link href="/post">
+                <button
+                  style={{
+                    background: 'transparent',
+                    color: '#1F2937',
+                    fontSize: '15px',
+                    fontWeight: 600,
+                    padding: '13px 24px',
+                    borderRadius: '10px',
+                    border: '1.5px solid #D6D3D1',
+                    cursor: 'pointer',
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: '8px',
+                    fontFamily: 'Inter, sans-serif',
+                    transition: 'all 0.2s ease',
+                    letterSpacing: '-0.1px',
+                  }}
+                  onMouseOver={e => {
+                    const el = e.currentTarget as HTMLElement
+                    el.style.borderColor = '#A8A29E'
+                    el.style.background = '#F8F7F4'
+                    el.style.transform = 'translateY(-1px)'
+                  }}
+                  onMouseOut={e => {
+                    const el = e.currentTarget as HTMLElement
+                    el.style.borderColor = '#D6D3D1'
+                    el.style.background = 'transparent'
+                    el.style.transform = 'translateY(0)'
+                  }}
+                >
+                  Sell Your Cycle
+                </button>
+              </Link>
             </div>
+
+            {/* Floating stat cards */}
+            <div
+              className="animate-fade-in-up delay-400"
+              style={{
+                opacity: 0,
+                display: 'flex',
+                gap: '12px',
+                flexWrap: 'wrap',
+              }}
+            >
+              {[
+                { value: '120+', label: 'Cycles listed' },
+                { value: '2,400+', label: 'TIET students' },
+                { value: 'Free', label: 'Zero commission' },
+              ].map((stat) => (
+                <div
+                  key={stat.label}
+                  style={{
+                    background: '#FFFFFF',
+                    border: '1px solid #E5E2DF',
+                    borderRadius: '10px',
+                    padding: '12px 18px',
+                    boxShadow: '0 2px 8px rgba(0,0,0,0.06)',
+                  }}
+                >
+                  <div style={{ fontSize: '18px', fontWeight: 800, color: '#1F2937', letterSpacing: '-0.5px', fontFamily: 'Inter, sans-serif' }}>
+                    {stat.value}
+                  </div>
+                  <div style={{ fontSize: '11px', color: '#9CA3AF', fontWeight: 500, marginTop: '2px', fontFamily: 'Inter, sans-serif' }}>
+                    {stat.label}
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+
+          {/* ── Right: 3D Bicycle ─────────────────────────── */}
+          <div
+            className="animate-fade-in delay-300"
+            style={{
+              opacity: 0,
+              position: 'relative',
+              height: '500px',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+            }}
+          >
+            {/* Subtle radial bg behind bike */}
+            <div style={{
+              position: 'absolute',
+              inset: 0,
+              background: 'radial-gradient(ellipse at center, rgba(214, 211, 209, 0.5) 0%, transparent 70%)',
+              borderRadius: '50%',
+            }} />
+            <Cycle3D />
           </div>
         </div>
 
@@ -447,17 +461,20 @@ export default function HomePage() {
           transform: 'translateX(-50%)',
           display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '8px',
           zIndex: 10,
+          animation: 'breathe 2s ease-in-out infinite',
         }}>
-          <span style={{ fontSize: '11px', color: 'var(--text-tertiary)', letterSpacing: '1.5px', textTransform: 'uppercase' }}>Scroll</span>
+          <span style={{ fontSize: '10px', color: '#9CA3AF', letterSpacing: '2px', textTransform: 'uppercase', fontFamily: 'Inter, sans-serif' }}>
+            Scroll
+          </span>
           <div style={{
-            width: 24, height: 38,
-            border: '1.5px solid var(--border-light)',
-            borderRadius: '12px',
+            width: 22, height: 36,
+            border: '1.5px solid #D6D3D1',
+            borderRadius: '11px',
             display: 'flex', justifyContent: 'center', paddingTop: '6px',
           }}>
             <div style={{
-              width: 4, height: 8,
-              background: 'var(--primary)',
+              width: 3, height: 7,
+              background: '#2F855A',
               borderRadius: '2px',
               animation: 'slideDown 1.5s ease-in-out infinite',
             }} />
@@ -466,27 +483,50 @@ export default function HomePage() {
       </section>
 
       {/* ══════════════════════ STATS SECTION ══════════════════════ */}
-      <section style={{ padding: '80px 20px', borderBottom: '1px solid var(--border-default)' }}>
-        <div style={{ maxWidth: '920px', margin: '0 auto' }}>
-          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(190px, 1fr))', gap: '20px' }}>
+      <section style={{ padding: '80px 40px', background: '#F8F7F4', borderTop: '1px solid #E5E2DF', borderBottom: '1px solid #E5E2DF' }}>
+        <div style={{ maxWidth: '1000px', margin: '0 auto' }}>
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: '16px' }}>
             {STATS.map((stat, i) => (
               <div
                 key={stat.label}
-                className="reveal card"
-                style={{ padding: '28px 24px', textAlign: 'center', animationDelay: `${i * 0.1}s` }}
+                className="reveal"
+                style={{
+                  background: '#FFFFFF',
+                  border: '1px solid #E5E2DF',
+                  borderRadius: '12px',
+                  padding: '28px 24px',
+                  textAlign: 'center',
+                  boxShadow: '0 1px 4px rgba(0,0,0,0.05)',
+                  animationDelay: `${i * 0.08}s`,
+                  transition: 'all 0.25s ease',
+                }}
+                onMouseOver={e => {
+                  const el = e.currentTarget as HTMLElement
+                  el.style.transform = 'translateY(-2px)'
+                  el.style.boxShadow = '0 4px 16px rgba(0,0,0,0.08)'
+                }}
+                onMouseOut={e => {
+                  const el = e.currentTarget as HTMLElement
+                  el.style.transform = 'translateY(0)'
+                  el.style.boxShadow = '0 1px 4px rgba(0,0,0,0.05)'
+                }}
               >
                 <div style={{
-                  width: 48, height: 48,
-                  background: 'rgba(34,197,94,0.1)',
-                  borderRadius: '12px',
+                  width: 44, height: 44,
+                  background: 'rgba(47, 133, 90, 0.08)',
+                  borderRadius: '10px',
                   display: 'flex', alignItems: 'center', justifyContent: 'center',
                   margin: '0 auto 14px',
-                  border: '1px solid rgba(34,197,94,0.2)',
+                  border: '1px solid rgba(47, 133, 90, 0.15)',
                 }}>
-                  <stat.icon size={22} color="var(--primary)" />
+                  <stat.icon size={20} color="#2F855A" />
                 </div>
-                <div style={{ fontSize: '30px', fontWeight: 900, color: '#fff', letterSpacing: '-1px' }}>{stat.value}</div>
-                <div style={{ fontSize: '13px', color: 'var(--text-secondary)', marginTop: '4px' }}>{stat.label}</div>
+                <div style={{ fontSize: '28px', fontWeight: 900, color: '#1F2937', letterSpacing: '-1px', fontFamily: 'Inter, sans-serif' }}>
+                  {stat.value}
+                </div>
+                <div style={{ fontSize: '13px', color: '#9CA3AF', marginTop: '4px', fontFamily: 'Inter, sans-serif', fontWeight: 500 }}>
+                  {stat.label}
+                </div>
               </div>
             ))}
           </div>
@@ -494,81 +534,166 @@ export default function HomePage() {
       </section>
 
       {/* ══════════════════════ HOW IT WORKS ══════════════════════ */}
-      <section style={{ padding: '100px 20px', borderBottom: '1px solid var(--border-default)' }}>
-        <div style={{ maxWidth: '960px', margin: '0 auto' }}>
+      <section style={{ padding: '100px 40px', background: '#E7E5E4', borderBottom: '1px solid #D6D3D1' }}>
+        <div style={{ maxWidth: '1000px', margin: '0 auto' }}>
           <div className="reveal" style={{ textAlign: 'center', marginBottom: '64px' }}>
             <div className="feature-pill" style={{ margin: '0 auto 20px' }}>How It Works</div>
-            <h2 style={{ fontSize: 'clamp(2rem, 4vw, 3rem)', fontWeight: 800, letterSpacing: '-1.5px', marginBottom: '12px' }}>
-              Simple, Safe &amp; Fast
+            <h2 style={{
+              fontSize: 'clamp(1.8rem, 4vw, 2.8rem)',
+              fontWeight: 800,
+              letterSpacing: '-1.5px',
+              marginBottom: '12px',
+              color: '#1F2937',
+              fontFamily: 'Inter, sans-serif',
+            }}>
+              Simple, Safe & Fast
             </h2>
-            <p style={{ color: 'var(--text-secondary)', fontSize: '16px', maxWidth: '480px', margin: '0 auto' }}>
-              No middlemen, no fees. Just honest student-to-student deals on campus.
+            <p style={{ color: '#6B7280', fontSize: '16px', maxWidth: '440px', margin: '0 auto', lineHeight: 1.7, fontFamily: 'Inter, sans-serif' }}>
+              No middlemen, no fees. Honest student-to-student deals on campus.
             </p>
           </div>
-          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(260px, 1fr))', gap: '24px' }}>
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(260px, 1fr))', gap: '20px' }}>
             {HOW_IT_WORKS.map((step, i) => (
-              <div key={step.step} className="reveal card" style={{ padding: '32px', animationDelay: `${i * 0.12}s` }}>
+              <div
+                key={step.step}
+                className="reveal"
+                style={{
+                  background: '#FAFAF9',
+                  border: '1px solid #E5E2DF',
+                  borderRadius: '14px',
+                  padding: '32px 28px',
+                  animationDelay: `${i * 0.1}s`,
+                  boxShadow: '0 1px 4px rgba(0,0,0,0.05)',
+                  position: 'relative',
+                  overflow: 'hidden',
+                  transition: 'all 0.25s ease',
+                }}
+                onMouseOver={e => {
+                  const el = e.currentTarget as HTMLElement
+                  el.style.transform = 'translateY(-3px)'
+                  el.style.boxShadow = '0 8px 28px rgba(0,0,0,0.09)'
+                  el.style.borderColor = '#A8A29E'
+                }}
+                onMouseOut={e => {
+                  const el = e.currentTarget as HTMLElement
+                  el.style.transform = 'translateY(0)'
+                  el.style.boxShadow = '0 1px 4px rgba(0,0,0,0.05)'
+                  el.style.borderColor = '#E5E2DF'
+                }}
+              >
+                {/* Large step number (background decorative) */}
                 <div style={{
-                  display: 'flex', alignItems: 'center', gap: '12px', marginBottom: '20px',
+                  position: 'absolute',
+                  top: '12px', right: '20px',
+                  fontSize: '80px',
+                  fontWeight: 900,
+                  color: '#E7E5E4',
+                  letterSpacing: '-4px',
+                  lineHeight: 1,
+                  fontFamily: 'Inter, sans-serif',
+                  userSelect: 'none',
                 }}>
-                  <div style={{
-                    width: 44, height: 44, borderRadius: '12px',
-                    background: 'rgba(34,197,94,0.1)', border: '1px solid rgba(34,197,94,0.2)',
-                    display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0,
-                  }}>
-                    <step.icon size={20} color="var(--primary)" />
-                  </div>
-                  <span style={{ fontSize: '28px', fontWeight: 900, color: 'rgba(34,197,94,0.2)', letterSpacing: '-1px' }}>
-                    {step.step}
-                  </span>
+                  {step.step}
                 </div>
-                <h3 style={{ fontSize: '16px', fontWeight: 700, marginBottom: '10px' }}>{step.title}</h3>
-                <p style={{ fontSize: '14px', color: 'var(--text-secondary)', lineHeight: 1.7 }}>{step.desc}</p>
+                <div style={{
+                  width: 44, height: 44,
+                  background: 'rgba(47, 133, 90, 0.08)',
+                  border: '1px solid rgba(47, 133, 90, 0.18)',
+                  borderRadius: '10px',
+                  display: 'flex', alignItems: 'center', justifyContent: 'center',
+                  marginBottom: '20px',
+                  flexShrink: 0,
+                }}>
+                  <step.icon size={20} color="#2F855A" />
+                </div>
+                <h3 style={{ fontSize: '15px', fontWeight: 700, marginBottom: '10px', color: '#1F2937', fontFamily: 'Inter, sans-serif' }}>
+                  {step.title}
+                </h3>
+                <p style={{ fontSize: '14px', color: '#6B7280', lineHeight: 1.7, fontFamily: 'Inter, sans-serif' }}>
+                  {step.desc}
+                </p>
               </div>
             ))}
           </div>
         </div>
       </section>
 
-      {/* ══════════════════════ LISTINGS SECTION ══════════════════════ */}
-      <section id="listings" style={{ padding: '80px 20px 120px' }}>
-        <div style={{ maxWidth: '1100px', margin: '0 auto' }}>
+      {/* ══════════════════════ MARKETPLACE SECTION ══════════════════════ */}
+      <section id="listings" ref={marketplaceRef} style={{ padding: '80px 40px 120px', background: '#F8F7F4' }}>
+        <div style={{ maxWidth: '1200px', margin: '0 auto' }}>
 
           {/* Section header */}
           <div className="reveal" style={{ marginBottom: '48px' }}>
-            <div style={{ display: 'flex', alignItems: 'center', gap: '10px', marginBottom: '12px' }}>
-              <div style={{ width: 3, height: 28, background: 'var(--primary)', borderRadius: '2px' }} />
-              <span style={{ fontSize: '13px', fontWeight: 700, color: 'var(--primary)', letterSpacing: '1.5px', textTransform: 'uppercase' }}>
-                Cycles for Sale
-              </span>
-            </div>
-            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: '12px' }}>
+            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: '16px' }}>
               <div>
-                <h2 style={{ fontSize: 'clamp(2rem, 4vw, 3rem)', fontWeight: 800, letterSpacing: '-1.5px', marginBottom: '8px' }}>
-                  Buy a Cycle
+                <p style={{ fontSize: '12px', fontWeight: 700, color: '#2F855A', letterSpacing: '2px', textTransform: 'uppercase', marginBottom: '8px', fontFamily: 'Inter, sans-serif' }}>
+                  Marketplace
+                </p>
+                <h2 style={{ fontSize: 'clamp(1.8rem, 4vw, 2.8rem)', fontWeight: 800, letterSpacing: '-1.5px', color: '#1F2937', marginBottom: '6px', fontFamily: 'Inter, sans-serif' }}>
+                  Cycles for Sale
                 </h2>
-                <p style={{ color: 'var(--text-secondary)', fontSize: '16px' }}>
-                  {filtered.length} cycles available for purchase
+                <p style={{ color: '#9CA3AF', fontSize: '15px', fontFamily: 'Inter, sans-serif' }}>
+                  {MOCK_LISTINGS.length} cycles available from TIET students
                 </p>
               </div>
               <Link href="/rent">
-                <button className="btn-secondary" style={{ padding: '10px 20px', fontSize: '14px', display: 'flex', alignItems: 'center', gap: '6px' }}>
-                  <Package size={15} /> Browse Rentals →
+                <button
+                  style={{
+                    background: '#FFFFFF',
+                    color: '#1F2937',
+                    fontSize: '13px',
+                    fontWeight: 600,
+                    padding: '10px 18px',
+                    border: '1px solid #D6D3D1',
+                    borderRadius: '9px',
+                    cursor: 'pointer',
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: '6px',
+                    fontFamily: 'Inter, sans-serif',
+                    transition: 'all 0.18s ease',
+                  }}
+                  onMouseOver={e => {
+                    const el = e.currentTarget as HTMLElement
+                    el.style.borderColor = '#A8A29E'
+                    el.style.transform = 'translateY(-1px)'
+                    el.style.boxShadow = '0 2px 8px rgba(0,0,0,0.07)'
+                  }}
+                  onMouseOut={e => {
+                    const el = e.currentTarget as HTMLElement
+                    el.style.borderColor = '#D6D3D1'
+                    el.style.transform = 'translateY(0)'
+                    el.style.boxShadow = 'none'
+                  }}
+                >
+                  <Package size={14} />
+                  Browse Rentals
+                  <ArrowRight size={13} />
                 </button>
               </Link>
             </div>
           </div>
 
           {/* Search & Filters */}
-          <div className="reveal glass" style={{ borderRadius: '16px', padding: '20px 24px', marginBottom: '32px' }}>
+          <div
+            className="reveal"
+            style={{
+              background: '#FFFFFF',
+              border: '1px solid #E5E2DF',
+              borderRadius: '14px',
+              padding: '20px 22px',
+              marginBottom: '28px',
+              boxShadow: '0 1px 4px rgba(0,0,0,0.05)',
+            }}
+          >
             <div style={{ display: 'flex', gap: '12px', flexWrap: 'wrap', alignItems: 'center' }}>
               {/* Search */}
               <div style={{ flex: '1', minWidth: '200px', position: 'relative' }}>
-                <Search size={16} style={{ position: 'absolute', left: '14px', top: '50%', transform: 'translateY(-50%)', color: 'var(--text-tertiary)' }} />
+                <Search size={15} style={{ position: 'absolute', left: '13px', top: '50%', transform: 'translateY(-50%)', color: '#9CA3AF' }} />
                 <input
                   className="input-field"
-                  style={{ paddingLeft: '42px' }}
-                  placeholder="Search by brand, title, hostel..."
+                  style={{ paddingLeft: '40px', fontSize: '14px' }}
+                  placeholder="Search by brand, title or hostel..."
                   value={search}
                   onChange={e => setSearch(e.target.value)}
                 />
@@ -579,34 +704,35 @@ export default function HomePage() {
                   className="input-field"
                   value={sortBy}
                   onChange={e => setSortBy(e.target.value)}
-                  style={{ cursor: 'pointer', appearance: 'none', paddingRight: '36px' }}
+                  style={{ cursor: 'pointer', appearance: 'none', paddingRight: '36px', fontSize: '14px' }}
                 >
                   <option value="newest">Newest First</option>
-                  <option value="price_asc">Price: Low→High</option>
-                  <option value="price_desc">Price: High→Low</option>
+                  <option value="price_asc">Price: Low → High</option>
+                  <option value="price_desc">Price: High → Low</option>
                 </select>
-                <ChevronDown size={14} style={{ position: 'absolute', right: '12px', top: '50%', transform: 'translateY(-50%)', color: 'var(--text-tertiary)', pointerEvents: 'none' }} />
+                <ChevronDown size={13} style={{ position: 'absolute', right: '12px', top: '50%', transform: 'translateY(-50%)', color: '#9CA3AF', pointerEvents: 'none' }} />
               </div>
               {/* Price range */}
-              <div style={{ display: 'flex', alignItems: 'center', gap: '8px', minWidth: '200px' }}>
-                <span style={{ fontSize: '13px', color: 'var(--text-secondary)', whiteSpace: 'nowrap' }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '10px', minWidth: '210px' }}>
+                <span style={{ fontSize: '13px', color: '#6B7280', whiteSpace: 'nowrap', fontFamily: 'Inter, sans-serif', fontWeight: 500 }}>
                   Max: {formatPrice(maxPrice)}
                 </span>
                 <input
                   type="range" min={1000} max={30000} step={500}
                   value={maxPrice}
                   onChange={e => setMaxPrice(Number(e.target.value))}
-                  style={{ flex: 1, accentColor: 'var(--primary)' }}
+                  style={{ flex: 1, accentColor: '#2F855A' }}
                 />
               </div>
             </div>
-            {/* Type filters */}
+            {/* Type filter chips */}
             <div style={{ display: 'flex', gap: '8px', marginTop: '14px', flexWrap: 'wrap' }}>
               {TYPE_FILTERS.map(t => (
                 <button
                   key={t}
                   className={`tag-pill ${typeFilter === t ? 'active' : ''}`}
                   onClick={() => setTypeFilter(t)}
+                  style={{ fontSize: '13px' }}
                 >
                   {t}
                 </button>
@@ -616,37 +742,56 @@ export default function HomePage() {
 
           {/* Listings grid */}
           {filtered.length === 0 ? (
-            <div style={{ textAlign: 'center', padding: '80px 20px', color: 'var(--text-tertiary)' }}>
-              <Package size={48} style={{ margin: '0 auto 16px', opacity: 0.4, display: 'block' }} />
-              <p style={{ fontSize: '18px', fontWeight: 600 }}>No cycles found</p>
-              <p style={{ fontSize: '14px', marginTop: '8px' }}>Try adjusting your filters</p>
+            <div style={{ textAlign: 'center', padding: '80px 20px' }}>
+              <Package size={44} style={{ margin: '0 auto 16px', opacity: 0.25, display: 'block', color: '#6B7280' }} />
+              <p style={{ fontSize: '17px', fontWeight: 600, color: '#1F2937', fontFamily: 'Inter, sans-serif' }}>No cycles found</p>
+              <p style={{ fontSize: '14px', color: '#9CA3AF', marginTop: '6px', fontFamily: 'Inter, sans-serif' }}>Try adjusting your filters or price range</p>
             </div>
           ) : (
-            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(320px, 1fr))', gap: '20px' }}>
-              {filtered.map((listing, i) => (
+            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(340px, 1fr))', gap: '20px' }}>
+              {MOCK_LISTINGS.map((listing, i) => (
                 <Link key={listing.id} href={`/listing/${listing.id}`} style={{ textDecoration: 'none' }}>
                   <div
-                    className="listing-card reveal"
-                    style={{ animationDelay: `${i * 0.06}s` }}
+                    className="reveal listing-card"
+                    style={{ animationDelay: `${i * 0.05}s` }}
                   >
                     {/* Image */}
-                    <div style={{ position: 'relative', height: '200px', overflow: 'hidden' }}>
+                    <div style={{ position: 'relative', height: '210px', overflow: 'hidden', borderRadius: '12px 12px 0 0' }}>
                       <img
                         src={listing.image_url}
                         alt={listing.title}
                         style={{ width: '100%', height: '100%', objectFit: 'cover', transition: 'transform 0.5s ease' }}
-                        onMouseOver={e => (e.currentTarget.style.transform = 'scale(1.06)')}
+                        onMouseOver={e => (e.currentTarget.style.transform = 'scale(1.04)')}
                         onMouseOut={e => (e.currentTarget.style.transform = 'scale(1)')}
                       />
+                      {/* Light overlay for badge readability */}
                       <div style={{
                         position: 'absolute', inset: 0,
-                        background: 'linear-gradient(to top, rgba(15,23,42,0.8) 0%, transparent 60%)',
+                        background: 'linear-gradient(to top, rgba(0,0,0,0.18) 0%, transparent 50%)',
+                        pointerEvents: 'none',
                       }} />
-                      <div style={{ position: 'absolute', top: '12px', left: '12px' }}>
-                        <span className="badge badge-accent">{listing.cycle_type}</span>
+                      {/* Badges */}
+                      <div style={{ position: 'absolute', top: '12px', left: '12px', display: 'flex', gap: '6px' }}>
+                        <span
+                          style={{
+                            background: 'rgba(255,255,255,0.92)',
+                            color: '#1F2937',
+                            fontSize: '10px',
+                            fontWeight: 600,
+                            padding: '3px 8px',
+                            borderRadius: '5px',
+                            textTransform: 'capitalize',
+                            fontFamily: 'Inter, sans-serif',
+                            letterSpacing: '0.3px',
+                            backdropFilter: 'blur(4px)',
+                          }}
+                        >
+                          {listing.cycle_type}
+                        </span>
                       </div>
                       <div style={{ position: 'absolute', top: '12px', right: '12px' }}>
-                        <span className={`badge ${CONDITION_COLORS[listing.condition]}`}>
+                        <span className={`badge ${CONDITION_COLORS[listing.condition]}`}
+                          style={{ background: 'rgba(255,255,255,0.92)', backdropFilter: 'blur(4px)', fontSize: '10px' }}>
                           {CONDITION_LABELS[listing.condition]}
                         </span>
                       </div>
@@ -654,65 +799,92 @@ export default function HomePage() {
 
                     {/* Content */}
                     <div style={{ padding: '16px 18px 18px' }}>
-                      <h3 style={{ fontSize: '15px', fontWeight: 700, color: '#fff', marginBottom: '6px', lineHeight: 1.3 }}>
+                      <h3 style={{ fontSize: '15px', fontWeight: 700, color: '#1F2937', marginBottom: '5px', lineHeight: 1.3, fontFamily: 'Inter, sans-serif' }}>
                         {listing.title}
                       </h3>
                       <p style={{
-                        fontSize: '13px', color: 'var(--text-secondary)', lineHeight: 1.5, marginBottom: '14px',
+                        fontSize: '13px', color: '#9CA3AF', lineHeight: 1.55, marginBottom: '14px',
                         display: '-webkit-box', WebkitLineClamp: 2, WebkitBoxOrient: 'vertical', overflow: 'hidden',
+                        fontFamily: 'Inter, sans-serif',
                       }}>
                         {listing.description}
                       </p>
 
                       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-end' }}>
                         <div>
-                          <div className="price-tag">{formatPrice(listing.price)}</div>
-                          <div style={{ display: 'flex', alignItems: 'center', gap: '10px', marginTop: '6px' }}>
-                            <div style={{ display: 'flex', alignItems: 'center', gap: '4px', color: 'var(--text-tertiary)', fontSize: '12px' }}>
+                          <div style={{ fontSize: '20px', fontWeight: 800, color: '#1F2937', letterSpacing: '-0.5px', fontFamily: 'Inter, sans-serif' }}>
+                            {formatPrice(listing.price)}
+                          </div>
+                          <div style={{ display: 'flex', alignItems: 'center', gap: '10px', marginTop: '5px' }}>
+                            <div style={{ display: 'flex', alignItems: 'center', gap: '4px', color: '#9CA3AF', fontSize: '12px', fontFamily: 'Inter, sans-serif' }}>
                               <MapPin size={11} />
                               {listing.pickup_location}
                             </div>
-                            <div style={{ display: 'flex', alignItems: 'center', gap: '4px', color: 'var(--text-tertiary)', fontSize: '12px' }}>
+                            <div style={{ display: 'flex', alignItems: 'center', gap: '4px', color: '#9CA3AF', fontSize: '12px', fontFamily: 'Inter, sans-serif' }}>
                               <Clock size={11} />
                               {timeAgo(listing.created_at)}
                             </div>
                           </div>
                         </div>
-                        <div style={{
-                          width: 36, height: 36,
-                          background: 'rgba(34,197,94,0.1)',
-                          border: '1px solid rgba(34,197,94,0.2)',
-                          borderRadius: '10px',
-                          display: 'flex', alignItems: 'center', justifyContent: 'center',
-                          transition: 'all 0.2s ease',
-                          flexShrink: 0,
-                        }}
-                          onMouseOver={e => { (e.currentTarget as HTMLElement).style.background = 'var(--primary)' }}
-                          onMouseOut={e => { (e.currentTarget as HTMLElement).style.background = 'rgba(34,197,94,0.1)' }}
+                        {/* Arrow button */}
+                        <div
+                          style={{
+                            width: 36, height: 36,
+                            background: '#F8F7F4',
+                            border: '1px solid #E5E2DF',
+                            borderRadius: '9px',
+                            display: 'flex', alignItems: 'center', justifyContent: 'center',
+                            transition: 'all 0.18s ease',
+                            flexShrink: 0,
+                          }}
+                          onMouseOver={e => {
+                            const el = e.currentTarget as HTMLElement
+                            el.style.background = '#1F2937'
+                            el.style.borderColor = '#1F2937'
+                          }}
+                          onMouseOut={e => {
+                            const el = e.currentTarget as HTMLElement
+                            el.style.background = '#F8F7F4'
+                            el.style.borderColor = '#E5E2DF'
+                          }}
                         >
-                          <ArrowRight size={15} color="var(--primary)" />
+                          <ArrowRight size={14} color="#6B7280" />
                         </div>
                       </div>
 
-                      {/* Seller */}
+                      {/* Seller row */}
                       <div style={{
-                        marginTop: '14px', paddingTop: '14px',
-                        borderTop: '1px solid var(--border-default)',
+                        marginTop: '14px', paddingTop: '13px',
+                        borderTop: '1px solid #F0EFED',
                         display: 'flex', alignItems: 'center', gap: '8px',
                       }}>
                         <div style={{
                           width: 26, height: 26, borderRadius: '50%',
-                          background: 'linear-gradient(135deg, var(--primary), var(--accent))',
+                          background: '#1F2937',
                           display: 'flex', alignItems: 'center', justifyContent: 'center',
                           flexShrink: 0,
                         }}>
-                          <span style={{ fontSize: '10px', fontWeight: 700, color: '#fff' }}>
+                          <span style={{ fontSize: '10px', fontWeight: 700, color: '#fff', fontFamily: 'Inter, sans-serif' }}>
                             {listing.seller_name.charAt(0)}
                           </span>
                         </div>
-                        <span style={{ fontSize: '12px', color: 'var(--text-secondary)' }}>{listing.seller_name}</span>
-                        <span className="badge badge-primary" style={{ marginLeft: 'auto', fontSize: '10px' }}>
-                          <Shield size={8} /> Verified
+                        <span style={{ fontSize: '12px', color: '#6B7280', fontFamily: 'Inter, sans-serif', fontWeight: 500 }}>
+                          {listing.seller_name}
+                        </span>
+                        <span style={{
+                          marginLeft: 'auto',
+                          display: 'inline-flex', alignItems: 'center', gap: '4px',
+                          background: 'rgba(47, 133, 90, 0.08)',
+                          color: '#2F855A',
+                          fontSize: '10px',
+                          fontWeight: 600,
+                          padding: '2px 8px',
+                          borderRadius: '4px',
+                          border: '1px solid rgba(47, 133, 90, 0.15)',
+                          fontFamily: 'Inter, sans-serif',
+                        }}>
+                          <Shield size={9} />
+                          Verified
                         </span>
                       </div>
                     </div>
@@ -727,11 +899,19 @@ export default function HomePage() {
       <style jsx>{`
         @keyframes slideDown {
           0%   { transform: translateY(0); opacity: 1; }
-          100% { transform: translateY(12px); opacity: 0; }
+          100% { transform: translateY(10px); opacity: 0; }
         }
         @keyframes breathe {
-          0%, 100% { opacity: 0.4; transform: scale(1); }
-          50%       { opacity: 0.7; transform: scale(1.05); }
+          0%, 100% { opacity: 0.5; }
+          50%       { opacity: 1; }
+        }
+        @media (max-width: 900px) {
+          section > div[style*="grid-template-columns: 1fr 1fr"] {
+            grid-template-columns: 1fr !important;
+          }
+          section > div > div[style*="height: 500px"] {
+            height: 340px !important;
+          }
         }
       `}</style>
     </div>

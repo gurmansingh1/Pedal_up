@@ -166,30 +166,29 @@ export default function RentPage() {
   })
 
   return (
-    <div style={{ minHeight: '100vh', background: 'var(--bg-primary)' }}>
+    <div style={{ minHeight: '100vh', background: '#E7E5E4' }}>
 
       {/* ── Hero ─────────────────────────────────────────────────────────────── */}
       <section style={{
         position: 'relative',
-        padding: '120px 20px 80px',
+        padding: '100px 20px 72px',
         overflow: 'hidden',
-        background: 'linear-gradient(160deg, #0F172A 0%, #0d1a0d 50%, #0F172A 100%)',
+        background: '#FAFAF9',
         textAlign: 'center',
+        borderBottom: '1px solid #E5E2DF',
       }}>
-        {/* Grid */}
-        <div className="grid-overlay" style={{ position: 'absolute', inset: 0, opacity: 0.4 }} />
-        {/* Glow */}
-        <div style={{
-          position: 'absolute', width: 500, height: 500,
-          background: 'radial-gradient(circle, rgba(132,204,22,0.07) 0%, transparent 70%)',
-          borderRadius: '50%', top: '-100px', right: '-50px', pointerEvents: 'none',
-          animation: 'breathe 8s ease-in-out infinite',
-        }} />
+        {/* Dot texture */}
+        <div style={{ position: 'absolute', inset: 0, backgroundImage: 'radial-gradient(#D6D3D1 1px, transparent 1px)', backgroundSize: '24px 24px', opacity: 0.5, pointerEvents: 'none' }} />
+        {/* Ambient blobs */}
         <div style={{
           position: 'absolute', width: 400, height: 400,
-          background: 'radial-gradient(circle, rgba(34,197,94,0.06) 0%, transparent 70%)',
-          borderRadius: '50%', bottom: '-50px', left: '-80px', pointerEvents: 'none',
-          animation: 'breathe 6s ease-in-out infinite reverse',
+          background: 'radial-gradient(circle, rgba(47,133,90,0.06) 0%, transparent 70%)',
+          borderRadius: '50%', top: '-80px', right: '-60px', pointerEvents: 'none',
+        }} />
+        <div style={{
+          position: 'absolute', width: 300, height: 300,
+          background: 'radial-gradient(circle, rgba(217,119,6,0.04) 0%, transparent 70%)',
+          borderRadius: '50%', bottom: '-40px', left: '-60px', pointerEvents: 'none',
         }} />
 
         <div style={{ position: 'relative', zIndex: 2, maxWidth: '700px', margin: '0 auto' }}>
@@ -198,12 +197,12 @@ export default function RentPage() {
             Cycle Rentals · TIET Campus
           </div>
           <h1 className="animate-fade-in-up delay-100"
-            style={{ opacity: 0, fontSize: 'clamp(2.5rem, 6vw, 4.5rem)', fontWeight: 900, letterSpacing: '-2.5px', lineHeight: 1.05, marginBottom: '18px' }}>
+            style={{ opacity: 0, fontSize: 'clamp(2.5rem, 6vw, 4.5rem)', fontWeight: 900, letterSpacing: '-2.5px', lineHeight: 1.05, marginBottom: '18px', color: '#1F2937', fontFamily: 'Inter, sans-serif' }}>
             Rent a Cycle,{' '}
-            <span className="gradient-text">Pay Per Day</span>
+            <span style={{ color: '#2F855A' }}>Pay Per Day</span>
           </h1>
           <p className="animate-fade-in-up delay-200"
-            style={{ opacity: 0, fontSize: '16px', color: 'var(--text-secondary)', lineHeight: 1.75, maxWidth: '480px', margin: '0 auto 36px' }}>
+            style={{ opacity: 0, fontSize: '16px', color: '#6B7280', lineHeight: 1.75, maxWidth: '480px', margin: '0 auto 36px', fontFamily: 'Inter, sans-serif' }}>
             Short-term or semester-long — find verified cycle owners who rent at student-friendly rates.
           </p>
           <div className="animate-fade-in-up delay-300" style={{ opacity: 0, display: 'flex', gap: '12px', flexWrap: 'wrap', justifyContent: 'center' }}>
@@ -223,9 +222,9 @@ export default function RentPage() {
 
       {/* ── Stats bar ──────────────────────────────────────────────────────────── */}
       <div style={{
-        background: 'var(--bg-card)',
-        borderTop: '1px solid var(--border-light)',
-        borderBottom: '1px solid var(--border-light)',
+        background: '#FFFFFF',
+        borderTop: '1px solid #E5E2DF',
+        borderBottom: '1px solid #E5E2DF',
         padding: '20px',
       }}>
         <div style={{ maxWidth: '900px', margin: '0 auto', display: 'flex', gap: '40px', justifyContent: 'center', flexWrap: 'wrap' }}>
@@ -236,8 +235,8 @@ export default function RentPage() {
             { label: 'TIET Verified',     value: '100%' },
           ].map(s => (
             <div key={s.label} style={{ textAlign: 'center' }}>
-              <div style={{ fontSize: '22px', fontWeight: 900, color: 'var(--primary)' }}>{s.value}</div>
-              <div style={{ fontSize: '12px', color: 'var(--text-secondary)', marginTop: '2px' }}>{s.label}</div>
+              <div style={{ fontSize: '22px', fontWeight: 900, color: '#2F855A', fontFamily: 'Inter, sans-serif' }}>{s.value}</div>
+              <div style={{ fontSize: '12px', color: '#9CA3AF', marginTop: '2px', fontFamily: 'Inter, sans-serif' }}>{s.label}</div>
             </div>
           ))}
         </div>

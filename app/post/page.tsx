@@ -144,16 +144,16 @@ export default function PostPage() {
   }
 
   return (
-    <div style={{ minHeight: '100vh', background: 'var(--bg-primary)', padding: '88px 20px 80px' }}>
+    <div style={{ minHeight: '100vh', background: '#E7E5E4', padding: '88px 24px 80px' }}>
       <div style={{ maxWidth: '760px', margin: '0 auto' }}>
 
         {/* Header */}
         <div style={{ marginBottom: '32px' }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: '10px', marginBottom: '6px' }}>
             <Bike size={22} color="var(--primary)" />
-            <h1 style={{ fontSize: '28px', fontWeight: 800, letterSpacing: '-1px' }}>Post a Listing</h1>
+            <h1 style={{ fontSize: '28px', fontWeight: 800, letterSpacing: '-1px', color: '#1F2937', fontFamily: 'Inter, sans-serif' }}>Post a Listing</h1>
           </div>
-          <p style={{ color: 'var(--text-secondary)', fontSize: '14px' }}>
+          <p style={{ color: '#6B7280', fontSize: '14px', fontFamily: 'Inter, sans-serif' }}>
             List your cycle for sale or rent — reach hundreds of TIET students instantly
           </p>
         </div>
@@ -161,9 +161,9 @@ export default function PostPage() {
         {/* ── Mode Toggle ─────────────────────────────────────────────────────── */}
         <div style={{
           marginBottom: '28px',
-          background: 'var(--bg-card)',
-          border: '1px solid var(--border-light)',
-          borderRadius: '16px',
+          background: '#F8F7F4',
+          border: '1px solid #E5E2DF',
+          borderRadius: '12px',
           padding: '6px',
           display: 'inline-flex',
           gap: '4px',
@@ -189,13 +189,13 @@ export default function PostPage() {
                 gap: '8px',
                 ...(mode === key
                   ? {
-                      background: 'linear-gradient(135deg, #22C55E, #16A34A)',
+                      background: '#1F2937',
                       color: '#fff',
-                      boxShadow: '0 4px 16px rgba(34,197,94,0.35)',
+                      boxShadow: '0 2px 8px rgba(31,41,55,0.2)',
                     }
                   : {
                       background: 'transparent',
-                      color: 'var(--text-secondary)',
+                      color: '#6B7280',
                     }),
               }}
             >

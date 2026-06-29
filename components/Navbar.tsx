@@ -2,7 +2,7 @@
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
 import { useState, useEffect } from 'react'
-import { Bike, Plus, MessageSquare, LayoutDashboard, LogIn, LogOut, Menu, X } from 'lucide-react'
+import { LogIn, LogOut, Menu, X } from 'lucide-react'
 
 export default function Navbar() {
   const pathname = usePathname()
@@ -48,62 +48,67 @@ export default function Navbar() {
   }
 
   const navLinks = [
-    { href: '/',          label: 'Buy' },
+    { href: '/',          label: 'Browse' },
     { href: '/rent',      label: 'Rent' },
     { href: '/post',      label: 'Sell' },
-    { href: '/chat',      label: 'Inbox' },
-    { href: '/dashboard', label: 'My Bazaar' },
+    { href: '/dashboard', label: 'My Listings' },
   ]
 
   return (
     <>
-      <nav
-        style={{
-          position: 'fixed',
-          top: 0, left: 0, right: 0,
-          zIndex: 100,
-          padding: '0 24px',
-          height: '64px',
-          display: 'flex',
-          alignItems: 'center',
-          justifyContent: 'space-between',
-          background: scrolled ? 'rgba(15, 23, 42, 0.97)' : 'rgba(15, 23, 42, 0.85)',
-          backdropFilter: 'blur(24px)',
-          WebkitBackdropFilter: 'blur(24px)',
-          borderBottom: scrolled ? '1px solid var(--border-light)' : '1px solid rgba(255,255,255,0.04)',
-          boxShadow: scrolled ? '0 4px 32px rgba(0,0,0,0.3)' : 'none',
-          transition: 'all 0.3s ease',
-        }}
-      >
+      <nav style={{
+        position: 'fixed',
+        top: 0, left: 0, right: 0,
+        zIndex: 100,
+        padding: '0 32px',
+        height: '60px',
+        display: 'flex',
+        alignItems: 'center',
+        justifyContent: 'space-between',
+        background: scrolled ? 'rgba(250, 250, 249, 0.98)' : 'rgba(250, 250, 249, 0.92)',
+        backdropFilter: 'blur(20px)',
+        WebkitBackdropFilter: 'blur(20px)',
+        borderBottom: '1px solid #E5E2DF',
+        boxShadow: scrolled ? '0 1px 8px rgba(0,0,0,0.07)' : 'none',
+        transition: 'all 0.25s ease',
+      }}>
         {/* ── Logo ─────────────────────────────────────────────────────────── */}
-        <Link href="/" style={{ display: 'flex', alignItems: 'center', gap: '9px', textDecoration: 'none' }}>
-          <div style={{
-            width: 34, height: 34,
-            background: 'linear-gradient(135deg, #22C55E, #16A34A)',
-            borderRadius: '10px',
-            display: 'flex', alignItems: 'center', justifyContent: 'center',
-            boxShadow: '0 4px 14px rgba(34,197,94,0.3)',
-            flexShrink: 0,
+        <Link href="/" style={{ display: 'flex', alignItems: 'center', gap: '2px', textDecoration: 'none' }}>
+          <span style={{
+            fontSize: '16px',
+            fontWeight: 800,
+            color: '#1F2937',
+            letterSpacing: '1.5px',
+            textTransform: 'uppercase',
+            fontFamily: 'Inter, sans-serif',
           }}>
-            <Bike size={18} color="#fff" strokeWidth={2.5} />
-          </div>
-          <span style={{ fontSize: '17px', fontWeight: 800, color: '#fff', letterSpacing: '-0.5px' }}>
-            Pedal<span style={{ color: 'var(--primary)' }}>Up</span>
+            Pedal
+          </span>
+          <span style={{
+            fontSize: '16px',
+            fontWeight: 800,
+            color: '#2F855A',
+            letterSpacing: '1.5px',
+            textTransform: 'uppercase',
+            fontFamily: 'Inter, sans-serif',
+          }}>
+            Up
           </span>
         </Link>
 
         {/* ── Desktop nav ───────────────────────────────────────────────────── */}
-        <div style={{ display: 'flex', alignItems: 'center', gap: '4px' }} className="desktop-nav">
+        <div style={{ display: 'flex', alignItems: 'center', gap: '32px' }} className="desktop-nav">
           {navLinks.map(link => (
             <Link
               key={link.href}
               href={link.href}
               className={`nav-link ${pathname === link.href ? 'active' : ''}`}
               style={{
-                padding: '6px 14px',
-                borderRadius: '8px',
+                fontFamily: 'Inter, sans-serif',
+                fontSize: '14px',
+                fontWeight: 500,
                 textDecoration: 'none',
-                transition: 'all 0.2s ease',
+                transition: 'all 0.18s ease',
               }}
             >
               {link.label}
@@ -112,45 +117,94 @@ export default function Navbar() {
         </div>
 
         {/* ── Right side ────────────────────────────────────────────────────── */}
-        <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
           {user ? (
             <>
-              <div style={{
-                display: 'flex', alignItems: 'center', gap: '8px',
-                padding: '5px 12px',
-                background: 'rgba(30,41,59,0.8)',
-                borderRadius: '10px',
-                border: '1px solid var(--border-light)',
-              }}>
+              {/* Profile pill */}
+              <Link href="/dashboard" style={{ textDecoration: 'none' }}>
                 <div style={{
-                  width: 26, height: 26, borderRadius: '50%',
-                  background: 'linear-gradient(135deg, #22C55E, #84CC16)',
-                  display: 'flex', alignItems: 'center', justifyContent: 'center',
-                }}>
-                  <span style={{ fontSize: '11px', fontWeight: 700, color: '#fff' }}>
-                    {user.name?.charAt(0).toUpperCase() || 'U'}
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: '8px',
+                  padding: '5px 12px 5px 6px',
+                  background: '#F8F7F4',
+                  borderRadius: '100px',
+                  border: '1px solid #E5E2DF',
+                  cursor: 'pointer',
+                  transition: 'all 0.18s ease',
+                }}
+                  onMouseOver={e => (e.currentTarget as HTMLElement).style.borderColor = '#A8A29E'}
+                  onMouseOut={e => (e.currentTarget as HTMLElement).style.borderColor = '#E5E2DF'}
+                >
+                  <div style={{
+                    width: 26, height: 26, borderRadius: '50%',
+                    background: '#1F2937',
+                    display: 'flex', alignItems: 'center', justifyContent: 'center',
+                    flexShrink: 0,
+                  }}>
+                    <span style={{ fontSize: '11px', fontWeight: 700, color: '#fff' }}>
+                      {user.name?.charAt(0).toUpperCase() || 'U'}
+                    </span>
+                  </div>
+                  <span style={{ fontSize: '13px', fontWeight: 600, color: '#1F2937', fontFamily: 'Inter, sans-serif' }}>
+                    {user.name?.split(' ')[0] || 'Student'}
                   </span>
                 </div>
-                <span style={{ fontSize: '13px', fontWeight: 600, color: 'var(--text-primary)' }}>
-                  {user.name?.split(' ')[0] || 'Student'}
-                </span>
-              </div>
+              </Link>
               <button
                 onClick={handleLogout}
-                className="btn-secondary"
-                style={{ padding: '7px 14px', fontSize: '13px', display: 'flex', alignItems: 'center', gap: '5px' }}
+                style={{
+                  background: 'transparent',
+                  color: '#6B7280',
+                  fontSize: '13px',
+                  fontWeight: 500,
+                  padding: '6px 12px',
+                  border: '1px solid #E5E2DF',
+                  borderRadius: '8px',
+                  cursor: 'pointer',
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: '5px',
+                  fontFamily: 'Inter, sans-serif',
+                  transition: 'all 0.18s ease',
+                }}
+                onMouseOver={e => {
+                  const el = e.currentTarget as HTMLElement
+                  el.style.color = '#1F2937'
+                  el.style.borderColor = '#A8A29E'
+                }}
+                onMouseOut={e => {
+                  const el = e.currentTarget as HTMLElement
+                  el.style.color = '#6B7280'
+                  el.style.borderColor = '#E5E2DF'
+                }}
               >
-                <LogOut size={14} />
-                Logout
+                <LogOut size={13} />
+                Sign out
               </button>
             </>
           ) : (
-            <Link href="/login">
+            <Link href="/login" style={{ textDecoration: 'none' }}>
               <button
-                className="btn-primary"
-                style={{ padding: '8px 18px', fontSize: '13px', display: 'flex', alignItems: 'center', gap: '6px' }}
+                style={{
+                  background: '#1F2937',
+                  color: '#FFFFFF',
+                  fontSize: '13px',
+                  fontWeight: 600,
+                  padding: '8px 18px',
+                  border: 'none',
+                  borderRadius: '8px',
+                  cursor: 'pointer',
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: '6px',
+                  fontFamily: 'Inter, sans-serif',
+                  transition: 'all 0.18s ease',
+                }}
+                onMouseOver={e => (e.currentTarget as HTMLElement).style.background = '#374151'}
+                onMouseOut={e => (e.currentTarget as HTMLElement).style.background = '#1F2937'}
               >
-                <LogIn size={14} />
+                <LogIn size={13} />
                 Sign In
               </button>
             </Link>
@@ -161,14 +215,15 @@ export default function Navbar() {
             onClick={() => setMenuOpen(!menuOpen)}
             className="mobile-menu-btn"
             style={{
-              background: 'var(--bg-elevated)',
-              border: '1px solid var(--border-light)',
+              background: '#F8F7F4',
+              border: '1px solid #E5E2DF',
               borderRadius: '8px',
               padding: '7px',
               cursor: 'pointer',
-              color: 'var(--text-primary)',
+              color: '#1F2937',
               display: 'none',
-              alignItems: 'center', justifyContent: 'center',
+              alignItems: 'center',
+              justifyContent: 'center',
             }}
           >
             {menuOpen ? <X size={18} /> : <Menu size={18} />}
@@ -180,17 +235,17 @@ export default function Navbar() {
       {menuOpen && (
         <div style={{
           position: 'fixed',
-          top: '64px',
+          top: '60px',
           left: 0, right: 0,
-          background: 'rgba(15,23,42,0.98)',
-          backdropFilter: 'blur(24px)',
-          borderBottom: '1px solid var(--border-light)',
-          padding: '12px',
+          background: '#FAFAF9',
+          borderBottom: '1px solid #E5E2DF',
+          padding: '8px 16px 16px',
           zIndex: 99,
           display: 'flex',
           flexDirection: 'column',
-          gap: '4px',
-          animation: 'fadeInUp 0.2s ease',
+          gap: '2px',
+          boxShadow: '0 8px 24px rgba(0,0,0,0.08)',
+          animation: 'fadeInUp 0.18s ease',
         }}>
           {navLinks.map(link => (
             <Link
@@ -198,16 +253,16 @@ export default function Navbar() {
               href={link.href}
               onClick={() => setMenuOpen(false)}
               style={{
-                padding: '13px 16px',
-                borderRadius: '10px',
-                background: pathname === link.href ? 'rgba(34,197,94,0.1)' : 'transparent',
-                color: pathname === link.href ? 'var(--primary)' : 'var(--text-secondary)',
+                padding: '12px 14px',
+                borderRadius: '8px',
+                background: pathname === link.href ? '#F0F0EE' : 'transparent',
+                color: pathname === link.href ? '#1F2937' : '#6B7280',
                 textDecoration: 'none',
-                fontWeight: 600,
+                fontWeight: pathname === link.href ? 600 : 500,
                 fontSize: '15px',
-                border: '1px solid',
-                borderColor: pathname === link.href ? 'rgba(34,197,94,0.2)' : 'transparent',
+                fontFamily: 'Inter, sans-serif',
                 transition: 'all 0.15s ease',
+                display: 'block',
               }}
             >
               {link.label}
@@ -217,17 +272,24 @@ export default function Navbar() {
             <button
               onClick={handleLogout}
               style={{
-                padding: '13px 16px', borderRadius: '10px',
-                background: 'transparent', color: '#ef4444',
-                border: '1px solid rgba(239,68,68,0.2)',
-                cursor: 'pointer', textAlign: 'left',
-                fontWeight: 600, fontSize: '15px',
+                padding: '12px 14px',
+                borderRadius: '8px',
+                background: 'transparent',
+                color: '#9B2626',
+                border: 'none',
+                cursor: 'pointer',
+                textAlign: 'left',
+                fontWeight: 500,
+                fontSize: '15px',
                 fontFamily: 'Inter, sans-serif',
-                display: 'flex', alignItems: 'center', gap: '8px',
+                display: 'flex',
+                alignItems: 'center',
+                gap: '8px',
                 marginTop: '4px',
+                transition: 'all 0.15s ease',
               }}
             >
-              <LogOut size={15} /> Logout
+              <LogOut size={15} /> Sign out
             </button>
           )}
         </div>

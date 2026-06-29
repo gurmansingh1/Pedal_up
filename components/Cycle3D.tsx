@@ -10,12 +10,15 @@ export default function Cycle3D() {
     let animFrameId: number
     let renderer: any, scene: any, camera: any, bikeGroup: any
     let frontWheel: any, rearWheel: any, pedalGroup: any
+    let accentLight: any
+    let targetRotationY = -0.3
+    let currentRotationY = -0.3
     let isDragging = false
     let previousMouseX = 0
-    let targetRotationY = 0.4
-    let currentRotationY = 0.4
-    let targetRotationX = 0
-    let currentRotationX = 0
+    let mouseX = 0
+    let mouseY = 0
+    let targetCamX = 0
+    let targetCamY = 0.5
 
     const script = document.createElement('script')
     script.src = 'https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js'
@@ -24,44 +27,67 @@ export default function Cycle3D() {
 
       // Scene
       scene = new THREE.Scene()
-      scene.fog = new THREE.FogExp2(0x0a0a0a, 0.08)
 
       // Camera
-      camera = new THREE.PerspectiveCamera(45, container.clientWidth / container.clientHeight, 0.1, 100)
-      camera.position.set(0, 0.5, 5.5)
+      camera = new THREE.PerspectiveCamera(40, container.clientWidth / container.clientHeight, 0.1, 100)
+      camera.position.set(0, 0.5, 5.8)
 
-      // Renderer
+      // Renderer — transparent background to match page
       renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true })
       renderer.setSize(container.clientWidth, container.clientHeight)
-      renderer.setPixelRatio(window.devicePixelRatio)
+      renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2))
       renderer.shadowMap.enabled = true
       renderer.shadowMap.type = THREE.PCFSoftShadowMap
       renderer.outputEncoding = THREE.sRGBEncoding
       container.appendChild(renderer.domElement)
 
-      // Materials
+      // ── Materials (light palette) ──────────────────────────────────────
+      // Frame: deep charcoal / dark graphite
       const frameMat = new THREE.MeshStandardMaterial({
-        color: 0xc5f135,
-        roughness: 0.15,
-        metalness: 0.9,
-        emissive: 0x1a2200,
-        emissiveIntensity: 0.3,
+        color: 0x1F2937,
+        roughness: 0.18,
+        metalness: 0.85,
       })
-      const darkMat = new THREE.MeshStandardMaterial({ color: 0x111111, roughness: 0.5, metalness: 0.7 })
-      const chromeMat = new THREE.MeshStandardMaterial({ color: 0xdddddd, roughness: 0.05, metalness: 1.0 })
-      const tireMat = new THREE.MeshStandardMaterial({ color: 0x1a1a1a, roughness: 0.9, metalness: 0.1 })
-      const rimMat = new THREE.MeshStandardMaterial({ color: 0xc5f135, roughness: 0.1, metalness: 1.0 })
-      const saddleMat = new THREE.MeshStandardMaterial({ color: 0x0a0a0a, roughness: 0.6, metalness: 0.3 })
+      // Accent parts: forest green (#2F855A)
+      const accentMat = new THREE.MeshStandardMaterial({
+        color: 0x2F855A,
+        roughness: 0.2,
+        metalness: 0.7,
+      })
+      // Chrome / silver
+      const chromeMat = new THREE.MeshStandardMaterial({
+        color: 0xCCCBC8,
+        roughness: 0.05,
+        metalness: 0.95,
+      })
+      // Tires: near-black with slight warm undertone
+      const tireMat = new THREE.MeshStandardMaterial({
+        color: 0x2A2622,
+        roughness: 0.88,
+        metalness: 0.05,
+      })
+      // Rim: charcoal accent
+      const rimMat = new THREE.MeshStandardMaterial({
+        color: 0x1F2937,
+        roughness: 0.12,
+        metalness: 0.9,
+      })
+      // Saddle/grips: deep matte
+      const saddleMat = new THREE.MeshStandardMaterial({
+        color: 0x111827,
+        roughness: 0.7,
+        metalness: 0.15,
+      })
 
       bikeGroup = new THREE.Group()
 
-      // Helper to create a tube between two points
+      // Helper — tube between two points
       const createTube = (from: number[], to: number[], radius: number, mat: any) => {
         const start = new THREE.Vector3(...from)
         const end = new THREE.Vector3(...to)
         const dir = new THREE.Vector3().subVectors(end, start)
         const length = dir.length()
-        const geo = new THREE.CylinderGeometry(radius, radius, length, 8)
+        const geo = new THREE.CylinderGeometry(radius, radius, length, 10)
         const mesh = new THREE.Mesh(geo, mat)
         mesh.position.copy(start).addScaledVector(dir.normalize(), length / 2)
         mesh.quaternion.setFromUnitVectors(new THREE.Vector3(0, 1, 0), dir.normalize())
@@ -69,196 +95,161 @@ export default function Cycle3D() {
         return mesh
       }
 
-      // Create wheel
-      const createWheel = (x: number) => {
+      // Helper — wheel
+      const createWheel = () => {
         const group = new THREE.Group()
         // Tire (torus)
-        const tireGeo = new THREE.TorusGeometry(0.85, 0.11, 16, 48)
-        const tire = new THREE.Mesh(tireGeo, tireMat)
+        const tire = new THREE.Mesh(new THREE.TorusGeometry(0.85, 0.115, 18, 52), tireMat)
         tire.castShadow = true
         group.add(tire)
         // Rim
-        const rimGeo = new THREE.TorusGeometry(0.72, 0.035, 10, 48)
-        const rim = new THREE.Mesh(rimGeo, rimMat)
+        const rim = new THREE.Mesh(new THREE.TorusGeometry(0.72, 0.032, 10, 52), rimMat)
         group.add(rim)
         // Hub
-        const hubGeo = new THREE.CylinderGeometry(0.09, 0.09, 0.18, 16)
-        const hub = new THREE.Mesh(hubGeo, chromeMat)
+        const hub = new THREE.Mesh(new THREE.CylinderGeometry(0.09, 0.09, 0.2, 16), chromeMat)
         hub.rotation.x = Math.PI / 2
         group.add(hub)
-        // Spokes (8 per wheel)
-        for (let i = 0; i < 8; i++) {
-          const angle = (i / 8) * Math.PI * 2
+        // Spokes
+        for (let i = 0; i < 9; i++) {
+          const angle = (i / 9) * Math.PI * 2
           const sx = Math.cos(angle) * 0.08
           const sy = Math.sin(angle) * 0.08
           const ex = Math.cos(angle) * 0.72
           const ey = Math.sin(angle) * 0.72
-          const spoke = createTube([sx, sy, 0], [ex, ey, 0], 0.018, chromeMat)
-          group.add(spoke)
+          group.add(createTube([sx, sy, 0], [ex, ey, 0], 0.016, chromeMat))
         }
         group.rotation.y = Math.PI / 2
-        group.position.x = x
         return group
       }
 
       // Wheels
-      rearWheel = createWheel(0)
+      rearWheel = createWheel()
       rearWheel.position.set(-1.25, 0, 0)
       bikeGroup.add(rearWheel)
 
-      frontWheel = createWheel(0)
+      frontWheel = createWheel()
       frontWheel.position.set(1.25, 0, 0)
       bikeGroup.add(frontWheel)
 
-      // --- Frame tubes ---
-      // Bottom bracket position: (0, 0.1, 0)
-      // Rear dropout: (-1.25, 0, 0)
-      // Front dropout: (1.25, 0, 0)
-      // Top tube: from seat post top to head tube top
-      // Seat post / top: (−0.5, 1.2, 0)
-      // Head tube top: (1.0, 1.15, 0)
-      // Head tube bottom: (1.0, 0.55, 0)
+      // ── Frame ─────────────────────────────────────────────────────────
+      bikeGroup.add(createTube([-1.25, 0.0, 0], [0, 0.2, 0], 0.048, frameMat))      // chain stay
+      bikeGroup.add(createTube([-1.25, 0.0, 0], [-0.5, 1.25, 0], 0.042, accentMat)) // seat stay
+      bikeGroup.add(createTube([0, 0.2, 0], [-0.5, 1.25, 0], 0.055, frameMat))      // seat tube
+      bikeGroup.add(createTube([-0.5, 1.25, 0], [1.0, 1.15, 0], 0.055, frameMat))  // top tube
+      bikeGroup.add(createTube([0, 0.2, 0], [1.0, 0.6, 0], 0.065, frameMat))       // down tube
+      bikeGroup.add(createTube([1.0, 0.6, 0.08], [1.25, 0.0, 0.08], 0.038, chromeMat)) // fork R
+      bikeGroup.add(createTube([1.0, 0.6, -0.08], [1.25, 0.0, -0.08], 0.038, chromeMat)) // fork L
+      bikeGroup.add(createTube([1.0, 0.6, 0], [1.0, 1.15, 0], 0.07, frameMat))     // head tube
 
-      // Chain stay (rear)
-      bikeGroup.add(createTube([-1.25, 0.0, 0], [0, 0.2, 0], 0.05, darkMat))
-      // Seat stay (rear top)
-      bikeGroup.add(createTube([-1.25, 0.0, 0], [-0.5, 1.25, 0], 0.04, frameMat))
-      // Seat tube (vertical)
-      bikeGroup.add(createTube([0, 0.2, 0], [-0.5, 1.25, 0], 0.055, frameMat))
-      // Top tube
-      bikeGroup.add(createTube([-0.5, 1.25, 0], [1.0, 1.15, 0], 0.055, frameMat))
-      // Down tube
-      bikeGroup.add(createTube([0, 0.2, 0], [1.0, 0.6, 0], 0.065, frameMat))
-      // Fork (two blades)
-      bikeGroup.add(createTube([1.0, 0.6, 0.08], [1.25, 0.0, 0.08], 0.04, chromeMat))
-      bikeGroup.add(createTube([1.0, 0.6, -0.08], [1.25, 0.0, -0.08], 0.04, chromeMat))
-      // Head tube
-      bikeGroup.add(createTube([1.0, 0.6, 0], [1.0, 1.15, 0], 0.07, darkMat))
-
-      // --- Saddle ---
-      const saddleGeo = new THREE.BoxGeometry(0.55, 0.06, 0.2)
-      saddleGeo.translate(-0.04, 0, 0)
-      const seatMesh = new THREE.Mesh(new THREE.BoxGeometry(0.6, 0.07, 0.22), saddleMat)
-      seatMesh.position.set(-0.52, 1.34, 0)
-      seatMesh.rotation.z = 0.03
+      // ── Saddle ───────────────────────────────────────────────────────
+      const seatMesh = new THREE.Mesh(new THREE.BoxGeometry(0.62, 0.07, 0.22), saddleMat)
+      seatMesh.position.set(-0.52, 1.35, 0)
       seatMesh.castShadow = true
       bikeGroup.add(seatMesh)
-      // Seat nose
-      const noseGeo = new THREE.ConeGeometry(0.06, 0.25, 8)
-      const seatNose = new THREE.Mesh(noseGeo, saddleMat)
-      seatNose.position.set(-0.2, 1.33, 0)
+      const seatNose = new THREE.Mesh(new THREE.ConeGeometry(0.055, 0.28, 8), saddleMat)
+      seatNose.position.set(-0.18, 1.34, 0)
       seatNose.rotation.z = Math.PI / 2
-      seatNose.castShadow = true
       bikeGroup.add(seatNose)
       // Saddle rails
-      bikeGroup.add(createTube([-0.75, 1.28, 0.06], [-0.2, 1.28, 0.06], 0.015, chromeMat))
-      bikeGroup.add(createTube([-0.75, 1.28, -0.06], [-0.2, 1.28, -0.06], 0.015, chromeMat))
+      bikeGroup.add(createTube([-0.78, 1.28, 0.06], [-0.18, 1.28, 0.06], 0.013, chromeMat))
+      bikeGroup.add(createTube([-0.78, 1.28, -0.06], [-0.18, 1.28, -0.06], 0.013, chromeMat))
 
-      // --- Handlebar stem & bars ---
-      bikeGroup.add(createTube([1.0, 1.15, 0], [1.0, 1.45, 0], 0.04, chromeMat))
-      bikeGroup.add(createTube([1.0, 1.45, 0], [1.1, 1.45, 0], 0.04, chromeMat))
-      // Drop bars (curved feel with two pieces)
-      bikeGroup.add(createTube([1.1, 1.45, -0.3], [1.1, 1.45, 0.3], 0.03, darkMat))
-      bikeGroup.add(createTube([1.1, 1.45, 0.3], [1.1, 1.2, 0.3], 0.03, darkMat))
-      bikeGroup.add(createTube([1.1, 1.45, -0.3], [1.1, 1.2, -0.3], 0.03, darkMat))
+      // ── Handlebar ────────────────────────────────────────────────────
+      bikeGroup.add(createTube([1.0, 1.15, 0], [1.0, 1.48, 0], 0.04, chromeMat))   // stem vertical
+      bikeGroup.add(createTube([1.0, 1.48, 0], [1.12, 1.48, 0], 0.04, chromeMat))  // stem reach
+      bikeGroup.add(createTube([1.12, 1.48, -0.32], [1.12, 1.48, 0.32], 0.03, frameMat)) // bar
+      bikeGroup.add(createTube([1.12, 1.48, 0.32], [1.12, 1.22, 0.32], 0.03, frameMat)) // bar drop R
+      bikeGroup.add(createTube([1.12, 1.48, -0.32], [1.12, 1.22, -0.32], 0.03, frameMat)) // bar drop L
       // Grips
-      const gripGeo = new THREE.CylinderGeometry(0.045, 0.045, 0.15, 10)
-      const gripL = new THREE.Mesh(gripGeo, saddleMat)
-      gripL.rotation.z = Math.PI / 2
-      gripL.position.set(1.1, 1.2, 0.3)
-      bikeGroup.add(gripL)
+      const gripGeo = new THREE.CylinderGeometry(0.044, 0.044, 0.14, 10)
       const gripR = new THREE.Mesh(gripGeo, saddleMat)
       gripR.rotation.z = Math.PI / 2
-      gripR.position.set(1.1, 1.2, -0.3)
+      gripR.position.set(1.12, 1.22, 0.32)
       bikeGroup.add(gripR)
+      const gripL = new THREE.Mesh(gripGeo, saddleMat)
+      gripL.rotation.z = Math.PI / 2
+      gripL.position.set(1.12, 1.22, -0.32)
+      bikeGroup.add(gripL)
 
-      // --- Bottom bracket & cranks ---
-      const bbGeo = new THREE.CylinderGeometry(0.08, 0.08, 0.22, 16)
-      const bb = new THREE.Mesh(bbGeo, darkMat)
+      // ── Bottom bracket & cranks ───────────────────────────────────────
+      const bb = new THREE.Mesh(new THREE.CylinderGeometry(0.08, 0.08, 0.24, 16), frameMat)
       bb.rotation.x = Math.PI / 2
       bb.position.set(0, 0.1, 0)
       bikeGroup.add(bb)
 
       pedalGroup = new THREE.Group()
       pedalGroup.position.set(0, 0.1, 0)
-      // Right crank
-      const crankR = createTube([0, 0, 0.11], [0.45, 0, 0.11], 0.04, frameMat)
-      pedalGroup.add(crankR)
-      // Left crank (opposite)
-      const crankL = createTube([0, 0, -0.11], [-0.45, 0, -0.11], 0.04, frameMat)
-      pedalGroup.add(crankL)
-      // Pedals
+      pedalGroup.add(createTube([0, 0, 0.12], [0.45, 0, 0.12], 0.04, accentMat))   // crank R
+      pedalGroup.add(createTube([0, 0, -0.12], [-0.45, 0, -0.12], 0.04, accentMat)) // crank L
       const pedalGeo = new THREE.BoxGeometry(0.22, 0.04, 0.1)
-      const pedalR = new THREE.Mesh(pedalGeo, darkMat)
-      pedalR.position.set(0.45, 0, 0.11)
+      const pedalR = new THREE.Mesh(pedalGeo, saddleMat)
+      pedalR.position.set(0.45, 0, 0.12)
       pedalGroup.add(pedalR)
-      const pedalL = new THREE.Mesh(pedalGeo, darkMat)
-      pedalL.position.set(-0.45, 0, -0.11)
+      const pedalL = new THREE.Mesh(pedalGeo, saddleMat)
+      pedalL.position.set(-0.45, 0, -0.12)
       pedalGroup.add(pedalL)
       bikeGroup.add(pedalGroup)
 
       // Chain ring
-      const chainRingGeo = new THREE.TorusGeometry(0.3, 0.025, 8, 32)
-      const chainRing = new THREE.Mesh(chainRingGeo, rimMat)
+      const chainRing = new THREE.Mesh(new THREE.TorusGeometry(0.3, 0.024, 8, 32), accentMat)
       chainRing.rotation.x = Math.PI / 2
-      chainRing.position.set(0, 0.1, 0.12)
+      chainRing.position.set(0, 0.1, 0.13)
       bikeGroup.add(chainRing)
 
-      // Position bike group
       bikeGroup.position.set(0, -0.1, 0)
       scene.add(bikeGroup)
 
-      // --- Lights ---
-      const ambientLight = new THREE.AmbientLight(0xffffff, 0.3)
-      scene.add(ambientLight)
+      // ── Lights ────────────────────────────────────────────────────────
+      const ambient = new THREE.AmbientLight(0xfdf6ee, 1.2)
+      scene.add(ambient)
 
-      const keyLight = new THREE.DirectionalLight(0xffffff, 2.5)
-      keyLight.position.set(4, 6, 5)
+      // Warm key light (top-right, simulates natural window light)
+      const keyLight = new THREE.DirectionalLight(0xfff8f0, 3.0)
+      keyLight.position.set(5, 7, 4)
       keyLight.castShadow = true
       keyLight.shadow.mapSize.set(2048, 2048)
       scene.add(keyLight)
 
-      const fillLight = new THREE.DirectionalLight(0xc5f135, 0.8)
-      fillLight.position.set(-5, 2, -3)
+      // Cool fill from left
+      const fillLight = new THREE.DirectionalLight(0xd4e8ff, 1.2)
+      fillLight.position.set(-5, 2, -2)
       scene.add(fillLight)
 
-      const rimLight = new THREE.DirectionalLight(0x80aaff, 0.5)
-      rimLight.position.set(0, -3, -5)
+      // Subtle rim/back light
+      const rimLight = new THREE.DirectionalLight(0xffffff, 0.6)
+      rimLight.position.set(0, -2, -5)
       scene.add(rimLight)
 
-      const accentLight = new THREE.PointLight(0xc5f135, 2, 5)
-      accentLight.position.set(0, 2, 2)
+      // Green accent point light (subtle)
+      accentLight = new THREE.PointLight(0x2F855A, 1.5, 6)
+      accentLight.position.set(-1, 1.5, 2)
       scene.add(accentLight)
 
-      // Ground glow (plane)
-      const glowGeo = new THREE.PlaneGeometry(6, 2)
-      const glowMat = new THREE.MeshBasicMaterial({
-        color: 0xc5f135,
-        transparent: true,
-        opacity: 0.04,
-        depthWrite: false,
-      })
-      const glow = new THREE.Mesh(glowGeo, glowMat)
-      glow.rotation.x = -Math.PI / 2
-      glow.position.y = -0.9
-      scene.add(glow)
-
-      // --- Mouse drag ---
+      // ── Mouse interaction ─────────────────────────────────────────────
       const onMouseDown = (e: MouseEvent) => {
         isDragging = true
         previousMouseX = e.clientX
       }
       const onMouseMove = (e: MouseEvent) => {
+        // Track mouse position for parallax
+        const rect = container.getBoundingClientRect()
+        mouseX = ((e.clientX - rect.left) / rect.width - 0.5) * 2
+        mouseY = ((e.clientY - rect.top) / rect.height - 0.5) * 2
+
         if (!isDragging) return
         const delta = e.clientX - previousMouseX
-        targetRotationY += delta * 0.01
+        targetRotationY += delta * 0.008
         previousMouseX = e.clientX
       }
       const onMouseUp = () => { isDragging = false }
-      const onTouchStart = (e: TouchEvent) => { isDragging = true; previousMouseX = e.touches[0].clientX }
+
+      const onTouchStart = (e: TouchEvent) => {
+        isDragging = true
+        previousMouseX = e.touches[0].clientX
+      }
       const onTouchMove = (e: TouchEvent) => {
         if (!isDragging) return
-        targetRotationY += (e.touches[0].clientX - previousMouseX) * 0.012
+        targetRotationY += (e.touches[0].clientX - previousMouseX) * 0.01
         previousMouseX = e.touches[0].clientX
       }
       const onTouchEnd = () => { isDragging = false }
@@ -279,34 +270,40 @@ export default function Cycle3D() {
       }
       window.addEventListener('resize', onResize)
 
-      // Animate
+      // ── Animate loop ──────────────────────────────────────────────────
       const clock = new THREE.Clock()
       const animate = () => {
         animFrameId = requestAnimationFrame(animate)
         const elapsed = clock.getElapsedTime()
 
-        // Auto-rotate when not dragging
+        // Auto-rotate slowly when not dragging
         if (!isDragging) {
-          targetRotationY += 0.004
+          targetRotationY += 0.003
         }
-        // Gentle bob
-        targetRotationX = Math.sin(elapsed * 0.4) * 0.04
 
-        // Smooth lerp
-        currentRotationY += (targetRotationY - currentRotationY) * 0.05
-        currentRotationX += (targetRotationX - currentRotationX) * 0.05
+        // Smooth lerp rotation
+        currentRotationY += (targetRotationY - currentRotationY) * 0.04
 
         bikeGroup.rotation.y = currentRotationY
-        bikeGroup.rotation.x = currentRotationX
+        // Gentle vertical sway
+        bikeGroup.rotation.x = Math.sin(elapsed * 0.35) * 0.02
+        bikeGroup.position.y = -0.1 + Math.sin(elapsed * 0.5) * 0.04
 
-        // Spin wheels and pedals
-        const wheelSpeed = 1.5
+        // Camera parallax from mouse (subtle)
+        targetCamX = mouseX * 0.25
+        targetCamY = 0.5 + mouseY * -0.15
+        camera.position.x += (targetCamX - camera.position.x) * 0.03
+        camera.position.y += (targetCamY - camera.position.y) * 0.03
+        camera.lookAt(0, 0.3, 0)
+
+        // Spin wheels and pedals in sync with auto-rotate
+        const wheelSpeed = 1.2
         if (frontWheel) frontWheel.rotation.x = elapsed * wheelSpeed
         if (rearWheel) rearWheel.rotation.x = elapsed * wheelSpeed
-        if (pedalGroup) pedalGroup.rotation.x = elapsed * 0.8
+        if (pedalGroup) pedalGroup.rotation.x = elapsed * 0.7
 
-        // Pulsing accent light
-        accentLight.intensity = 1.5 + Math.sin(elapsed * 2) * 0.5
+        // Subtle accent light pulse
+        if (accentLight) accentLight.intensity = 1.2 + Math.sin(elapsed * 1.8) * 0.3
 
         renderer.render(scene, camera)
       }
