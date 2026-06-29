@@ -3,6 +3,7 @@
 @tailwind utilities;
 
 @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Geist:wght@300;400;500;600;700;800;900&display=swap');
 
 /* ─── Design Tokens ──────────────────────────────────────────────────────────── */
 :root {
@@ -51,7 +52,7 @@
 }
 
 html {
-  scroll-behavior: smooth;
+  scroll-behavior: auto; /* Lenis handles smooth scroll */
 }
 
 body {
@@ -124,6 +125,23 @@ body {
 @keyframes breathe {
   0%, 100% { opacity: 0.6; }
   50%       { opacity: 1; }
+}
+
+@keyframes dotSlide {
+  0%   { transform: translateX(-100%) translateY(-50%); opacity: 0; }
+  20%  { opacity: 1; }
+  80%  { opacity: 1; }
+  100% { transform: translateX(300%) translateY(-50%); opacity: 0; }
+}
+
+@keyframes heroExit {
+  0%   { transform: translateY(0); opacity: 1; }
+  100% { transform: translateY(-12vh); opacity: 0; }
+}
+
+@keyframes marketplaceEnter {
+  0%   { opacity: 0; transform: translateY(30px); }
+  100% { opacity: 1; transform: translateY(0); }
 }
 
 /* ─── Animation Classes ───────────────────────────────────────────────────────── */
@@ -541,4 +559,85 @@ select.input-field option {
 @media (max-width: 768px) {
   .desktop-nav { display: none !important; }
   .mobile-menu-btn { display: flex !important; }
+}
+
+/* ─── Premium Button Micro-interaction ──────────────────────────────────────── */
+.btn-micro {
+  position: relative;
+  overflow: hidden;
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  font-family: 'Inter', sans-serif;
+  font-weight: 600;
+  font-size: 15px;
+  cursor: pointer;
+  border-radius: 10px;
+  transition: transform 0.15s cubic-bezier(0.16,1,0.3,1), box-shadow 0.15s ease;
+  user-select: none;
+  letter-spacing: -0.1px;
+}
+
+.btn-micro:active {
+  transform: scale(0.97) !important;
+}
+
+.btn-micro-primary {
+  background: #1F2937;
+  color: #FFFFFF;
+  padding: 14px 28px;
+  border: none;
+}
+
+.btn-micro-primary:hover {
+  box-shadow: 0 4px 20px rgba(31,41,55,0.22);
+  transform: translateY(-1px);
+}
+
+.btn-micro-secondary {
+  background: transparent;
+  color: #1F2937;
+  padding: 13px 24px;
+  border: 1.5px solid #D6D3D1;
+}
+
+.btn-micro-secondary:hover {
+  background: #F8F7F4;
+  border-color: #A8A29E;
+  transform: translateY(-1px);
+  box-shadow: 0 2px 10px rgba(0,0,0,0.07);
+}
+
+.btn-micro-dot {
+  position: absolute;
+  top: 50%;
+  left: -8px;
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  opacity: 0;
+  transform: translateY(-50%);
+  pointer-events: none;
+  transition: left 0.38s cubic-bezier(0.16,1,0.3,1), opacity 0.15s ease;
+}
+
+/* ─── Lenis smooth scroll ────────────────────────────────────────────────────── */
+html.lenis, html.lenis body {
+  height: auto;
+}
+
+.lenis.lenis-smooth {
+  scroll-behavior: auto !important;
+}
+
+.lenis.lenis-smooth [data-lenis-prevent] {
+  overscroll-behavior: contain;
+}
+
+.lenis.lenis-stopped {
+  overflow: hidden;
+}
+
+.lenis.lenis-scrolling iframe {
+  pointer-events: none;
 }

@@ -1,5 +1,5 @@
 'use client'
-import { useState, useEffect, useRef } from 'react'
+import { useState, useEffect, useRef, useCallback } from 'react'
 import Link from 'next/link'
 import dynamic from 'next/dynamic'
 import {
@@ -10,7 +10,7 @@ import {
 // Dynamically import 3D component (no SSR)
 const Cycle3D = dynamic(() => import('@/components/Cycle3D'), { ssr: false })
 
-/* ─── Mock listings (used while Supabase not configured) ──────────────────────── */
+/* ─── Mock listings ────────────────────────────────────────────────────────── */
 const MOCK_LISTINGS = [
   {
     id: 'listing-uuid-1',
@@ -23,6 +23,7 @@ const MOCK_LISTINGS = [
     age_months: 10,
     pickup_location: 'JGB Hostel Parking',
     status: 'active',
+    listing_mode: 'sale',
     seller_name: 'Aman Verma',
     seller_hostel: 'JGB',
     image_url: 'https://images.unsplash.com/photo-1485965120184-e220f721d03e?auto=format&fit=crop&w=600&q=80',
@@ -39,6 +40,7 @@ const MOCK_LISTINGS = [
     age_months: 24,
     pickup_location: 'MGG Hostel Gate',
     status: 'active',
+    listing_mode: 'sale',
     seller_name: 'Simran Kaur',
     seller_hostel: 'MGG',
     image_url: 'https://images.unsplash.com/photo-1532298229144-0ec0c57515c7?auto=format&fit=crop&w=600&q=80',
@@ -55,6 +57,7 @@ const MOCK_LISTINGS = [
     age_months: 15,
     pickup_location: 'JGB Block A',
     status: 'active',
+    listing_mode: 'sale',
     seller_name: 'Aman Verma',
     seller_hostel: 'JGB',
     image_url: 'https://images.unsplash.com/photo-1507035895480-2b3156c31fc8?auto=format&fit=crop&w=600&q=80',
@@ -71,6 +74,7 @@ const MOCK_LISTINGS = [
     age_months: 36,
     pickup_location: 'Kailash Hostel',
     status: 'active',
+    listing_mode: 'sale',
     seller_name: 'Ranjit Singh',
     seller_hostel: 'Kailash',
     image_url: 'https://images.unsplash.com/photo-1571068316344-75bc76f77890?auto=format&fit=crop&w=600&q=80',
@@ -87,6 +91,7 @@ const MOCK_LISTINGS = [
     age_months: 8,
     pickup_location: 'P-Block',
     status: 'active',
+    listing_mode: 'sale',
     seller_name: 'Priya Sharma',
     seller_hostel: 'Girls Hostel',
     image_url: 'https://images.unsplash.com/photo-1559348349-86f1f65817fe?auto=format&fit=crop&w=600&q=80',
@@ -103,6 +108,7 @@ const MOCK_LISTINGS = [
     age_months: 5,
     pickup_location: 'Vishwakarma Hostel',
     status: 'active',
+    listing_mode: 'sale',
     seller_name: 'Dhruv Malhotra',
     seller_hostel: 'Vishwakarma',
     image_url: 'https://images.unsplash.com/photo-1565185693497-e41f93432f89?auto=format&fit=crop&w=600&q=80',
@@ -119,18 +125,18 @@ const CONDITION_LABELS: Record<string, string> = {
 
 const CONDITION_COLORS: Record<string, string> = {
   like_new: 'badge-primary',
-  good:     'badge-accent',
-  fair:     'badge-yellow',
-  poor:     'badge-red',
+  good: 'badge-accent',
+  fair: 'badge-yellow',
+  poor: 'badge-red',
 }
 
 const TYPE_FILTERS = ['All', 'Hybrid', 'Mountain', 'Road', 'City', 'Folding']
 
 const STATS = [
-  { icon: Bike,       label: 'Cycles Listed',   value: '120+' },
-  { icon: Users,      label: 'TIET Students',    value: '2,400+' },
-  { icon: Shield,     label: 'Domain-Verified',  value: '100%' },
-  { icon: TrendingUp, label: 'Avg. Savings',     value: '60%' },
+  { icon: Bike, label: 'Cycles Listed', value: '120+' },
+  { icon: Users, label: 'TIET Students', value: '2,400+' },
+  { icon: Shield, label: 'Domain-Verified', value: '100%' },
+  { icon: TrendingUp, label: 'Avg. Savings', value: '60%' },
 ]
 
 const HOW_IT_WORKS = [
@@ -154,6 +160,96 @@ const HOW_IT_WORKS = [
   },
 ]
 
+/* ─── Premium Micro Button ──────────────────────────────────────────────────── */
+function MicroBtn({
+  children,
+  onClick,
+  variant = 'primary',
+  id,
+}: {
+  children: React.ReactNode
+  onClick?: () => void
+  variant?: 'primary' | 'secondary'
+  id?: string
+}) {
+  const dotRef = useRef<HTMLSpanElement>(null)
+  const [pressing, setPressing] = useState(false)
+
+  const fireHover = () => {
+    if (!dotRef.current) return
+    const dot = dotRef.current
+    dot.style.transition = 'none'
+    dot.style.left = '-8px'
+    dot.style.opacity = '1'
+    // Force reflow
+    void dot.offsetWidth
+    dot.style.transition = 'left 0.38s cubic-bezier(0.16,1,0.3,1)'
+    dot.style.left = 'calc(100% + 8px)'
+  }
+
+  const clearHover = () => {
+    if (!dotRef.current) return
+    dotRef.current.style.transition = 'opacity 0.18s ease'
+    dotRef.current.style.opacity = '0'
+    dotRef.current.style.left = '-8px'
+    setPressing(false)
+  }
+
+  const baseStyle: React.CSSProperties = {
+    position: 'relative',
+    overflow: 'hidden',
+    display: 'inline-flex',
+    alignItems: 'center',
+    gap: '8px',
+    fontFamily: 'Inter, sans-serif',
+    fontWeight: 600,
+    fontSize: '15px',
+    letterSpacing: '-0.1px',
+    cursor: 'pointer',
+    borderRadius: '10px',
+    userSelect: 'none',
+    transition: 'transform 0.15s cubic-bezier(0.16,1,0.3,1), box-shadow 0.18s ease',
+    transform: pressing ? 'scale(0.97)' : 'scale(1)',
+    WebkitTapHighlightColor: 'transparent',
+  }
+
+  const variantStyle: React.CSSProperties =
+    variant === 'primary'
+      ? { background: '#1F2937', color: '#FFFFFF', padding: '14px 28px', border: 'none' }
+      : { background: 'transparent', color: '#1F2937', padding: '13px 24px', border: '1.5px solid #D6D3D1' }
+
+  return (
+    <button
+      id={id}
+      style={{ ...baseStyle, ...variantStyle }}
+      onMouseEnter={fireHover}
+      onMouseLeave={clearHover}
+      onMouseDown={() => setPressing(true)}
+      onMouseUp={() => { setPressing(false); if (onClick) onClick() }}
+      onTouchStart={() => setPressing(true)}
+      onTouchEnd={() => { setPressing(false); if (onClick) onClick() }}
+    >
+      <span
+        ref={dotRef}
+        style={{
+          position: 'absolute',
+          top: '50%',
+          left: '-8px',
+          transform: 'translateY(-50%)',
+          width: 6,
+          height: 6,
+          background: variant === 'primary' ? 'rgba(255,255,255,0.55)' : '#2F855A',
+          borderRadius: '50%',
+          opacity: 0,
+          pointerEvents: 'none',
+        }}
+      />
+      {children}
+    </button>
+  )
+}
+
+/* ─── Main Page ─────────────────────────────────────────────────────────────── */
 export default function HomePage() {
   const [search, setSearch] = useState('')
   const [typeFilter, setTypeFilter] = useState('All')
@@ -161,34 +257,83 @@ export default function HomePage() {
   const [maxPrice, setMaxPrice] = useState(30000)
   const heroRef = useRef<HTMLElement>(null)
   const marketplaceRef = useRef<HTMLElement>(null)
+  const statsRef = useRef<HTMLElement>(null)
+  const howRef = useRef<HTMLElement>(null)
 
+  // ── Scroll reveal observer ───────────────────────────────────────────────
   useEffect(() => {
-    // Scroll reveal observer
     const observer = new IntersectionObserver(
       (entries) => { entries.forEach(e => e.target.classList.toggle('visible', e.isIntersecting)) },
-      { threshold: 0.1 }
+      { threshold: 0.08 }
     )
     document.querySelectorAll('.reveal').forEach(el => observer.observe(el))
     return () => observer.disconnect()
   }, [])
 
-  // Scroll-driven hero parallax (pure CSS + JS, no framer-motion needed)
+  // ── GSAP Scroll-driven hero exit + marketplace entrance ─────────────────
   useEffect(() => {
-    const hero = heroRef.current
-    if (!hero) return
-    const handleScroll = () => {
-      const scrollY = window.scrollY
-      const heroHeight = hero.offsetHeight
-      const progress = Math.min(scrollY / heroHeight, 1)
-      // Hero slides up and fades
-      hero.style.transform = `translateY(${scrollY * 0.45}px)`
-      hero.style.opacity = `${1 - progress * 1.6}`
+    let gsap: any
+    let scrollTrigger: any
+    let cleanup: () => void
+
+    const initGSAP = async () => {
+      try {
+        const gsapMod = await import('gsap')
+        const stMod = await import('gsap/ScrollTrigger')
+        gsap = gsapMod.gsap || gsapMod.default
+        scrollTrigger = stMod.ScrollTrigger
+        if (!gsap || !scrollTrigger) return
+
+        gsap.registerPlugin(scrollTrigger)
+
+        const hero = heroRef.current
+        const marketplace = marketplaceRef.current
+        const stats = statsRef.current
+        const how = howRef.current
+        if (!hero) return
+
+        // Hero exit: slides up + fades out as user scrolls
+        gsap.to(hero, {
+          yPercent: -18,
+          opacity: 0,
+          ease: 'none',
+          scrollTrigger: {
+            trigger: hero,
+            start: 'top top',
+            end: 'bottom top',
+            scrub: 0.6,
+          },
+        })
+
+        // Stats section entrance
+        if (stats) {
+          gsap.from(stats, {
+            opacity: 0,
+            y: 28,
+            duration: 0.7,
+            ease: 'power3.out',
+            scrollTrigger: {
+              trigger: stats,
+              start: 'top 85%',
+              once: true,
+            },
+          })
+        }
+
+        cleanup = () => {
+          scrollTrigger.getAll().forEach((t: any) => t.kill())
+        }
+      } catch (e) {
+        // GSAP unavailable — graceful fallback
+        console.warn('[PedalUp] GSAP not loaded, using native scroll')
+      }
     }
-    window.addEventListener('scroll', handleScroll, { passive: true })
-    return () => window.removeEventListener('scroll', handleScroll)
+
+    initGSAP()
+    return () => { if (cleanup) cleanup() }
   }, [])
 
-  // Only show sale listings on the home page
+  // ── Listings filter ──────────────────────────────────────────────────────
   const filtered = MOCK_LISTINGS.filter(l => {
     const matchesSearch =
       l.title.toLowerCase().includes(search.toLowerCase()) ||
@@ -196,7 +341,8 @@ export default function HomePage() {
       l.pickup_location.toLowerCase().includes(search.toLowerCase())
     const matchesType = typeFilter === 'All' || l.cycle_type === typeFilter.toLowerCase()
     const matchesPrice = l.price <= maxPrice
-    return matchesSearch && matchesType && matchesPrice && (l as any).listing_mode === 'sale'
+    const matchesMode = l.listing_mode === 'sale'
+    return matchesSearch && matchesType && matchesPrice && matchesMode
   }).sort((a, b) => {
     if (sortBy === 'price_asc') return a.price - b.price
     if (sortBy === 'price_desc') return b.price - a.price
@@ -214,6 +360,7 @@ export default function HomePage() {
 
       {/* ══════════════════════ HERO SECTION ══════════════════════ */}
       <section
+        id="hero-section"
         ref={heroRef}
         style={{
           position: 'relative',
@@ -230,29 +377,29 @@ export default function HomePage() {
           position: 'absolute', inset: 0, pointerEvents: 'none',
           backgroundImage: 'radial-gradient(#D6D3D1 1px, transparent 1px)',
           backgroundSize: '28px 28px',
-          opacity: 0.5,
+          opacity: 0.45,
         }} />
 
-        {/* Soft green ambient blob — bottom right */}
+        {/* Soft green ambient blob */}
         <div style={{
           position: 'absolute',
-          width: 520, height: 520,
+          width: 560, height: 560,
           background: 'radial-gradient(circle, rgba(47, 133, 90, 0.07) 0%, transparent 70%)',
           borderRadius: '50%',
-          bottom: '-80px', right: '-60px',
+          bottom: '-100px', right: '-80px',
           pointerEvents: 'none',
         }} />
-        {/* Warm amber blob — top left */}
+        {/* Warm amber blob */}
         <div style={{
           position: 'absolute',
-          width: 380, height: 380,
+          width: 400, height: 400,
           background: 'radial-gradient(circle, rgba(217, 119, 6, 0.04) 0%, transparent 70%)',
           borderRadius: '50%',
-          top: '-40px', left: '-60px',
+          top: '-60px', left: '-80px',
           pointerEvents: 'none',
         }} />
 
-        {/* ── Hero inner layout ────────────────────────────────────── */}
+        {/* ── Hero inner layout ─────────────────────────────────────── */}
         <div style={{
           position: 'relative',
           zIndex: 5,
@@ -266,14 +413,11 @@ export default function HomePage() {
           alignItems: 'center',
         }}>
 
-          {/* ── Left: Text content ────────────────────────── */}
+          {/* ── Left: Text content ─────────────────────────── */}
           <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-start' }}>
 
             {/* Label chip */}
-            <div
-              className="feature-pill animate-fade-in"
-              style={{ marginBottom: '28px' }}
-            >
+            <div className="feature-pill animate-fade-in" style={{ marginBottom: '28px' }}>
               <div className="status-dot" style={{ width: 6, height: 6 }} />
               Exclusively for @thapar.edu students
             </div>
@@ -317,94 +461,25 @@ export default function HomePage() {
             {/* CTA buttons */}
             <div
               className="animate-fade-in-up delay-300"
-              style={{
-                opacity: 0,
-                display: 'flex',
-                gap: '12px',
-                flexWrap: 'wrap',
-                marginBottom: '56px',
-              }}
+              style={{ opacity: 0, display: 'flex', gap: '12px', flexWrap: 'wrap', marginBottom: '56px' }}
             >
               <a href="#listings">
-                <button
-                  style={{
-                    background: '#1F2937',
-                    color: '#FFFFFF',
-                    fontSize: '15px',
-                    fontWeight: 600,
-                    padding: '14px 28px',
-                    borderRadius: '10px',
-                    border: 'none',
-                    cursor: 'pointer',
-                    display: 'flex',
-                    alignItems: 'center',
-                    gap: '8px',
-                    fontFamily: 'Inter, sans-serif',
-                    transition: 'all 0.2s ease',
-                    letterSpacing: '-0.1px',
-                  }}
-                  onMouseOver={e => {
-                    const el = e.currentTarget as HTMLElement
-                    el.style.background = '#374151'
-                    el.style.transform = 'translateY(-1px)'
-                    el.style.boxShadow = '0 4px 16px rgba(31,41,55,0.2)'
-                  }}
-                  onMouseOut={e => {
-                    const el = e.currentTarget as HTMLElement
-                    el.style.background = '#1F2937'
-                    el.style.transform = 'translateY(0)'
-                    el.style.boxShadow = 'none'
-                  }}
-                >
+                <MicroBtn variant="primary" id="hero-browse-btn">
                   Browse Cycles
                   <ArrowRight size={15} />
-                </button>
+                </MicroBtn>
               </a>
-              <Link href="/post">
-                <button
-                  style={{
-                    background: 'transparent',
-                    color: '#1F2937',
-                    fontSize: '15px',
-                    fontWeight: 600,
-                    padding: '13px 24px',
-                    borderRadius: '10px',
-                    border: '1.5px solid #D6D3D1',
-                    cursor: 'pointer',
-                    display: 'flex',
-                    alignItems: 'center',
-                    gap: '8px',
-                    fontFamily: 'Inter, sans-serif',
-                    transition: 'all 0.2s ease',
-                    letterSpacing: '-0.1px',
-                  }}
-                  onMouseOver={e => {
-                    const el = e.currentTarget as HTMLElement
-                    el.style.borderColor = '#A8A29E'
-                    el.style.background = '#F8F7F4'
-                    el.style.transform = 'translateY(-1px)'
-                  }}
-                  onMouseOut={e => {
-                    const el = e.currentTarget as HTMLElement
-                    el.style.borderColor = '#D6D3D1'
-                    el.style.background = 'transparent'
-                    el.style.transform = 'translateY(0)'
-                  }}
-                >
+              <Link href="/post" style={{ textDecoration: 'none' }}>
+                <MicroBtn variant="secondary" id="hero-sell-btn">
                   Sell Your Cycle
-                </button>
+                </MicroBtn>
               </Link>
             </div>
 
-            {/* Floating stat cards */}
+            {/* Floating stat chips */}
             <div
               className="animate-fade-in-up delay-400"
-              style={{
-                opacity: 0,
-                display: 'flex',
-                gap: '12px',
-                flexWrap: 'wrap',
-              }}
+              style={{ opacity: 0, display: 'flex', gap: '12px', flexWrap: 'wrap' }}
             >
               {[
                 { value: '120+', label: 'Cycles listed' },
@@ -418,7 +493,18 @@ export default function HomePage() {
                     border: '1px solid #E5E2DF',
                     borderRadius: '10px',
                     padding: '12px 18px',
-                    boxShadow: '0 2px 8px rgba(0,0,0,0.06)',
+                    boxShadow: '0 2px 8px rgba(0,0,0,0.05)',
+                    transition: 'all 0.25s ease',
+                  }}
+                  onMouseOver={e => {
+                    const el = e.currentTarget as HTMLElement
+                    el.style.transform = 'translateY(-2px)'
+                    el.style.boxShadow = '0 6px 20px rgba(0,0,0,0.08)'
+                  }}
+                  onMouseOut={e => {
+                    const el = e.currentTarget as HTMLElement
+                    el.style.transform = 'translateY(0)'
+                    el.style.boxShadow = '0 2px 8px rgba(0,0,0,0.05)'
                   }}
                 >
                   <div style={{ fontSize: '18px', fontWeight: 800, color: '#1F2937', letterSpacing: '-0.5px', fontFamily: 'Inter, sans-serif' }}>
@@ -432,23 +518,21 @@ export default function HomePage() {
             </div>
           </div>
 
-          {/* ── Right: 3D Bicycle ─────────────────────────── */}
+          {/* ── Right: 3D Rider Scene ─────────────────────── */}
           <div
             className="animate-fade-in delay-300"
             style={{
               opacity: 0,
               position: 'relative',
-              height: '500px',
+              height: '520px',
               display: 'flex',
               alignItems: 'center',
               justifyContent: 'center',
             }}
           >
-            {/* Subtle radial bg behind bike */}
             <div style={{
-              position: 'absolute',
-              inset: 0,
-              background: 'radial-gradient(ellipse at center, rgba(214, 211, 209, 0.5) 0%, transparent 70%)',
+              position: 'absolute', inset: 0,
+              background: 'radial-gradient(ellipse at center, rgba(214, 211, 209, 0.4) 0%, transparent 70%)',
               borderRadius: '50%',
             }} />
             <Cycle3D />
@@ -459,12 +543,19 @@ export default function HomePage() {
         <div style={{
           position: 'absolute', bottom: '32px', left: '50%',
           transform: 'translateX(-50%)',
-          display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '8px',
+          display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '10px',
           zIndex: 10,
-          animation: 'breathe 2s ease-in-out infinite',
+          animation: 'breathe 2.2s ease-in-out infinite',
         }}>
-          <span style={{ fontSize: '10px', color: '#9CA3AF', letterSpacing: '2px', textTransform: 'uppercase', fontFamily: 'Inter, sans-serif' }}>
-            Scroll
+          <span style={{
+            fontSize: '10px',
+            color: '#B0A89E',
+            letterSpacing: '2.5px',
+            textTransform: 'uppercase',
+            fontFamily: 'Inter, sans-serif',
+            fontWeight: 600,
+          }}>
+            Scroll to Ride
           </span>
           <div style={{
             width: 22, height: 36,
@@ -483,7 +574,7 @@ export default function HomePage() {
       </section>
 
       {/* ══════════════════════ STATS SECTION ══════════════════════ */}
-      <section style={{ padding: '80px 40px', background: '#F8F7F4', borderTop: '1px solid #E5E2DF', borderBottom: '1px solid #E5E2DF' }}>
+      <section ref={statsRef} style={{ padding: '80px 40px', background: '#F8F7F4', borderTop: '1px solid #E5E2DF', borderBottom: '1px solid #E5E2DF' }}>
         <div style={{ maxWidth: '1000px', margin: '0 auto' }}>
           <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: '16px' }}>
             {STATS.map((stat, i) => (
@@ -498,17 +589,19 @@ export default function HomePage() {
                   textAlign: 'center',
                   boxShadow: '0 1px 4px rgba(0,0,0,0.05)',
                   animationDelay: `${i * 0.08}s`,
-                  transition: 'all 0.25s ease',
+                  transition: 'all 0.28s cubic-bezier(0.16,1,0.3,1)',
                 }}
                 onMouseOver={e => {
                   const el = e.currentTarget as HTMLElement
-                  el.style.transform = 'translateY(-2px)'
-                  el.style.boxShadow = '0 4px 16px rgba(0,0,0,0.08)'
+                  el.style.transform = 'translateY(-3px)'
+                  el.style.boxShadow = '0 8px 28px rgba(0,0,0,0.09)'
+                  el.style.borderColor = '#C5C2BE'
                 }}
                 onMouseOut={e => {
                   const el = e.currentTarget as HTMLElement
                   el.style.transform = 'translateY(0)'
                   el.style.boxShadow = '0 1px 4px rgba(0,0,0,0.05)'
+                  el.style.borderColor = '#E5E2DF'
                 }}
               >
                 <div style={{
@@ -534,7 +627,7 @@ export default function HomePage() {
       </section>
 
       {/* ══════════════════════ HOW IT WORKS ══════════════════════ */}
-      <section style={{ padding: '100px 40px', background: '#E7E5E4', borderBottom: '1px solid #D6D3D1' }}>
+      <section ref={howRef} style={{ padding: '100px 40px', background: '#E7E5E4', borderBottom: '1px solid #D6D3D1' }}>
         <div style={{ maxWidth: '1000px', margin: '0 auto' }}>
           <div className="reveal" style={{ textAlign: 'center', marginBottom: '64px' }}>
             <div className="feature-pill" style={{ margin: '0 auto 20px' }}>How It Works</div>
@@ -566,12 +659,12 @@ export default function HomePage() {
                   boxShadow: '0 1px 4px rgba(0,0,0,0.05)',
                   position: 'relative',
                   overflow: 'hidden',
-                  transition: 'all 0.25s ease',
+                  transition: 'all 0.28s cubic-bezier(0.16,1,0.3,1)',
                 }}
                 onMouseOver={e => {
                   const el = e.currentTarget as HTMLElement
-                  el.style.transform = 'translateY(-3px)'
-                  el.style.boxShadow = '0 8px 28px rgba(0,0,0,0.09)'
+                  el.style.transform = 'translateY(-4px)'
+                  el.style.boxShadow = '0 12px 32px rgba(0,0,0,0.1)'
                   el.style.borderColor = '#A8A29E'
                 }}
                 onMouseOut={e => {
@@ -581,17 +674,11 @@ export default function HomePage() {
                   el.style.borderColor = '#E5E2DF'
                 }}
               >
-                {/* Large step number (background decorative) */}
                 <div style={{
-                  position: 'absolute',
-                  top: '12px', right: '20px',
-                  fontSize: '80px',
-                  fontWeight: 900,
-                  color: '#E7E5E4',
-                  letterSpacing: '-4px',
-                  lineHeight: 1,
-                  fontFamily: 'Inter, sans-serif',
-                  userSelect: 'none',
+                  position: 'absolute', top: '12px', right: '20px',
+                  fontSize: '80px', fontWeight: 900, color: '#E7E5E4',
+                  letterSpacing: '-4px', lineHeight: 1,
+                  fontFamily: 'Inter, sans-serif', userSelect: 'none',
                 }}>
                   {step.step}
                 </div>
@@ -601,8 +688,7 @@ export default function HomePage() {
                   border: '1px solid rgba(47, 133, 90, 0.18)',
                   borderRadius: '10px',
                   display: 'flex', alignItems: 'center', justifyContent: 'center',
-                  marginBottom: '20px',
-                  flexShrink: 0,
+                  marginBottom: '20px', flexShrink: 0,
                 }}>
                   <step.icon size={20} color="#2F855A" />
                 </div>
@@ -636,28 +722,19 @@ export default function HomePage() {
                   {MOCK_LISTINGS.length} cycles available from TIET students
                 </p>
               </div>
-              <Link href="/rent">
+              <Link href="/rent" style={{ textDecoration: 'none' }}>
                 <button
                   style={{
-                    background: '#FFFFFF',
-                    color: '#1F2937',
-                    fontSize: '13px',
-                    fontWeight: 600,
-                    padding: '10px 18px',
-                    border: '1px solid #D6D3D1',
-                    borderRadius: '9px',
-                    cursor: 'pointer',
-                    display: 'flex',
-                    alignItems: 'center',
-                    gap: '6px',
-                    fontFamily: 'Inter, sans-serif',
-                    transition: 'all 0.18s ease',
+                    background: '#FFFFFF', color: '#1F2937', fontSize: '13px', fontWeight: 600,
+                    padding: '10px 18px', border: '1px solid #D6D3D1', borderRadius: '9px',
+                    cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '6px',
+                    fontFamily: 'Inter, sans-serif', transition: 'all 0.2s ease',
                   }}
                   onMouseOver={e => {
                     const el = e.currentTarget as HTMLElement
                     el.style.borderColor = '#A8A29E'
                     el.style.transform = 'translateY(-1px)'
-                    el.style.boxShadow = '0 2px 8px rgba(0,0,0,0.07)'
+                    el.style.boxShadow = '0 4px 12px rgba(0,0,0,0.08)'
                   }}
                   onMouseOut={e => {
                     const el = e.currentTarget as HTMLElement
@@ -678,12 +755,8 @@ export default function HomePage() {
           <div
             className="reveal"
             style={{
-              background: '#FFFFFF',
-              border: '1px solid #E5E2DF',
-              borderRadius: '14px',
-              padding: '20px 22px',
-              marginBottom: '28px',
-              boxShadow: '0 1px 4px rgba(0,0,0,0.05)',
+              background: '#FFFFFF', border: '1px solid #E5E2DF', borderRadius: '14px',
+              padding: '20px 22px', marginBottom: '28px', boxShadow: '0 1px 4px rgba(0,0,0,0.04)',
             }}
           >
             <div style={{ display: 'flex', gap: '12px', flexWrap: 'wrap', alignItems: 'center' }}>
@@ -749,7 +822,7 @@ export default function HomePage() {
             </div>
           ) : (
             <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(340px, 1fr))', gap: '20px' }}>
-              {MOCK_LISTINGS.map((listing, i) => (
+              {filtered.map((listing, i) => (
                 <Link key={listing.id} href={`/listing/${listing.id}`} style={{ textDecoration: 'none' }}>
                   <div
                     className="reveal listing-card"
@@ -764,7 +837,6 @@ export default function HomePage() {
                         onMouseOver={e => (e.currentTarget.style.transform = 'scale(1.04)')}
                         onMouseOut={e => (e.currentTarget.style.transform = 'scale(1)')}
                       />
-                      {/* Light overlay for badge readability */}
                       <div style={{
                         position: 'absolute', inset: 0,
                         background: 'linear-gradient(to top, rgba(0,0,0,0.18) 0%, transparent 50%)',
@@ -772,20 +844,13 @@ export default function HomePage() {
                       }} />
                       {/* Badges */}
                       <div style={{ position: 'absolute', top: '12px', left: '12px', display: 'flex', gap: '6px' }}>
-                        <span
-                          style={{
-                            background: 'rgba(255,255,255,0.92)',
-                            color: '#1F2937',
-                            fontSize: '10px',
-                            fontWeight: 600,
-                            padding: '3px 8px',
-                            borderRadius: '5px',
-                            textTransform: 'capitalize',
-                            fontFamily: 'Inter, sans-serif',
-                            letterSpacing: '0.3px',
-                            backdropFilter: 'blur(4px)',
-                          }}
-                        >
+                        <span style={{
+                          background: 'rgba(255,255,255,0.92)',
+                          color: '#1F2937', fontSize: '10px', fontWeight: 600,
+                          padding: '3px 8px', borderRadius: '5px',
+                          textTransform: 'capitalize', fontFamily: 'Inter, sans-serif',
+                          letterSpacing: '0.3px', backdropFilter: 'blur(4px)',
+                        }}>
                           {listing.cycle_type}
                         </span>
                       </div>
@@ -829,13 +894,10 @@ export default function HomePage() {
                         {/* Arrow button */}
                         <div
                           style={{
-                            width: 36, height: 36,
-                            background: '#F8F7F4',
-                            border: '1px solid #E5E2DF',
-                            borderRadius: '9px',
+                            width: 36, height: 36, background: '#F8F7F4',
+                            border: '1px solid #E5E2DF', borderRadius: '9px',
                             display: 'flex', alignItems: 'center', justifyContent: 'center',
-                            transition: 'all 0.18s ease',
-                            flexShrink: 0,
+                            transition: 'all 0.2s ease', flexShrink: 0,
                           }}
                           onMouseOver={e => {
                             const el = e.currentTarget as HTMLElement
@@ -861,8 +923,7 @@ export default function HomePage() {
                         <div style={{
                           width: 26, height: 26, borderRadius: '50%',
                           background: '#1F2937',
-                          display: 'flex', alignItems: 'center', justifyContent: 'center',
-                          flexShrink: 0,
+                          display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0,
                         }}>
                           <span style={{ fontSize: '10px', fontWeight: 700, color: '#fff', fontFamily: 'Inter, sans-serif' }}>
                             {listing.seller_name.charAt(0)}
@@ -875,11 +936,8 @@ export default function HomePage() {
                           marginLeft: 'auto',
                           display: 'inline-flex', alignItems: 'center', gap: '4px',
                           background: 'rgba(47, 133, 90, 0.08)',
-                          color: '#2F855A',
-                          fontSize: '10px',
-                          fontWeight: 600,
-                          padding: '2px 8px',
-                          borderRadius: '4px',
+                          color: '#2F855A', fontSize: '10px', fontWeight: 600,
+                          padding: '2px 8px', borderRadius: '4px',
                           border: '1px solid rgba(47, 133, 90, 0.15)',
                           fontFamily: 'Inter, sans-serif',
                         }}>
@@ -909,7 +967,7 @@ export default function HomePage() {
           section > div[style*="grid-template-columns: 1fr 1fr"] {
             grid-template-columns: 1fr !important;
           }
-          section > div > div[style*="height: 500px"] {
+          section > div > div[style*="height: 520px"] {
             height: 340px !important;
           }
         }

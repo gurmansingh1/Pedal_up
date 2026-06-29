@@ -301,7 +301,7 @@ export default function RentPage() {
                 onClick={() => setAvailableOnly(a => !a)}
                 style={{
                   display: 'flex', alignItems: 'center', gap: '6px',
-                  padding: '9px 14px', borderRadius: '10px', border: 'none', cursor: 'pointer',
+                  padding: '9px 14px', borderRadius: '10px', cursor: 'pointer',
                   background: availableOnly ? 'rgba(34,197,94,0.12)' : 'var(--bg-elevated)',
                   color: availableOnly ? 'var(--primary)' : 'var(--text-secondary)',
                   fontFamily: 'Inter, sans-serif', fontWeight: 600, fontSize: '13px',
